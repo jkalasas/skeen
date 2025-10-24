@@ -4,6 +4,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Textarea } from '$lib/components/ui/textarea';
+	import { Package, FileText, Sparkles, FlaskConical } from '@lucide/svelte';
 
 	interface Props {
 		loading?: boolean;
@@ -47,42 +48,62 @@
 	}
 </script>
 
-<Card.Root>
-	<Card.Header>
-		<Card.Title>Product</Card.Title>
-		<Card.Description>Enter your product information</Card.Description>
+<Card.Root class="border-2 shadow-lg">
+	<Card.Header class="space-y-1">
+		<div class="flex items-center gap-2">
+			<div class="rounded-lg bg-primary/10 p-2">
+				<Package class="h-5 w-5 text-primary" />
+			</div>
+			<Card.Title class="text-xl">Product Details</Card.Title>
+		</div>
+		<Card.Description>Enter your product information manually for instant analysis</Card.Description>
 	</Card.Header>
 	<Card.Content>
-		<div class="space-y-4">
+		<div class="space-y-5">
 			<div class="space-y-2">
-				<Label for="manual-name">Product Name *</Label>
+				<Label for="manual-name" class="text-sm font-semibold flex items-center gap-2">
+					<Package class="h-3.5 w-3.5" />
+					Product Name *
+				</Label>
 				<Input
 					id="manual-name"
 					bind:value={name}
 					placeholder="e.g., CeraVe Moisturizing Cream"
+					class="h-11"
 				/>
 			</div>
 
 			<div class="space-y-2">
-				<Label for="manual-description">Description (optional)</Label>
+				<Label for="manual-description" class="text-sm font-semibold flex items-center gap-2">
+					<FileText class="h-3.5 w-3.5" />
+					Description (optional)
+				</Label>
 				<Input
 					id="manual-description"
 					bind:value={description}
 					placeholder="e.g., Daily moisturizing cream for dry skin"
+					class="h-11"
 				/>
 			</div>
 
 			<div class="space-y-2">
-				<Label for="manual-ingredients">Ingredients (comma-separated, optional)</Label>
+				<Label for="manual-ingredients" class="text-sm font-semibold flex items-center gap-2">
+					<FlaskConical class="h-3.5 w-3.5" />
+					Ingredients (comma-separated, optional)
+				</Label>
 				<Textarea
 					id="manual-ingredients"
 					bind:value={ingredients}
 					placeholder="e.g., Hyaluronic Acid, Ceramides, Niacinamide"
+					rows={4}
+					class="resize-none"
 				/>
+				<p class="text-xs text-muted-foreground">Separate each ingredient with a comma</p>
 			</div>
 
-			<Button onclick={handleSubmit} disabled={loading || !name.trim()}>
-				{loading ? 'Assessing...' : 'Assess Product'}
+			<Button onclick={handleSubmit} disabled={loading || !name.trim()} class="w-full h-11 gap-2 text-base">
+				<Sparkles class="h-4 w-4" />
+				{loading ? 'Analyzing...' : 'Assess Product'}
 			</Button>
 		</div>
 	</Card.Content>

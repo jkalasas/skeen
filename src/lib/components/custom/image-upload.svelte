@@ -4,6 +4,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Badge } from '$lib/components/ui/badge';
+	import { Camera, Upload, SwitchCamera, X, Sparkles, RefreshCw, Image as ImageIcon } from '@lucide/svelte';
 	import { onMount } from 'svelte';
 
 	interface Props {
@@ -157,51 +158,64 @@
 	}
 </script>
 
-<Card.Root>
-	<Card.Header>
-		<Card.Title>Upload Product Images</Card.Title>
-		<Card.Description>Select or capture images of your skincare product</Card.Description>
+<Card.Root class="border-2 shadow-lg">
+	<Card.Header class="space-y-1">
+		<div class="flex items-center gap-2">
+			<div class="rounded-lg bg-primary/10 p-2">
+				<ImageIcon class="h-5 w-5 text-primary" />
+			</div>
+			<Card.Title class="text-xl">Upload Product Images</Card.Title>
+		</div>
+		<Card.Description>Select or capture images of your skincare product for analysis</Card.Description>
 	</Card.Header>
 	<Card.Content>
-		<div class="space-y-4">
+		<div class="space-y-6">
 			<div class="grid gap-4 sm:grid-cols-2">
 				<div class="space-y-2">
-					<Label for="file-upload">Choose from Gallery</Label>
-					<Input
-						id="file-upload"
-						bind:ref={fileInput}
-						type="file"
-						accept="image/*"
-						multiple
-						onchange={handleFileSelect}
-					/>
+					<Label for="file-upload" class="text-sm font-semibold">Choose from Gallery</Label>
+					<div class="relative">
+						<Input
+							id="file-upload"
+							bind:ref={fileInput}
+							type="file"
+							accept="image/*"
+							multiple
+							onchange={handleFileSelect}
+							class="file:mr-4 file:rounded-md file:border-0 file:bg-primary file:px-4 file:py-2 file:mb-2 file:text-sm file:font-semibold file:text-primary-foreground hover:file:bg-primary/90 h-full"
+						/>
+					</div>
 				</div>
 
 				<div class="space-y-2">
-					<Label>Live Camera</Label>
+					<Label class="text-sm font-semibold">Live Camera</Label>
 					<Button 
 						onclick={() => isCameraActive ? stopCamera() : startCamera()} 
 						variant="outline"
-						class="w-full"
+						class="w-full gap-2 h-13"
 						disabled={loading}
 					>
+						<Camera class="h-4 w-4" />
 						{isCameraActive ? 'Close Camera' : 'Open Camera'}
 					</Button>
 				</div>
 			</div>
 
 			{#if cameraError}
-				<div class="rounded-lg border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
-					{cameraError}
+				<div class="rounded-lg border-2 border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive flex items-start gap-2">
+					<X class="h-4 w-4 mt-0.5 flex-shrink-0" />
+					<span>{cameraError}</span>
 				</div>
 			{/if}
 
 			{#if isCameraActive}
-				<div class="space-y-3">
-					<div class="relative aspect-[3/4] overflow-hidden rounded-lg border bg-muted">
+				<div class="space-y-4">
+					<div class="relative aspect-[3/4] overflow-hidden rounded-xl border-2 bg-muted shadow-inner">
 						{#if !videoReady}
 							<div class="absolute inset-0 flex items-center justify-center bg-black/90">
-								<p class="text-sm text-white">Loading camera...</p>
+								<div class="flex flex-col items-center gap-3">
+									<Camera class="h-8 w-8 text-white animate-pulse" />
+									<p class="text-sm text-white">Loading camera...</p>
+								</div>
 							</div>
 						{/if}
 						<video
@@ -215,15 +229,18 @@
 					</div>
 					
 					<div class="flex flex-wrap gap-2">
-						<Button onclick={capturePhoto} disabled={loading || !videoReady}>
-							📸 Capture Photo
+						<Button onclick={capturePhoto} disabled={loading || !videoReady} class="gap-2 flex-1 sm:flex-none">
+							<Camera class="h-4 w-4" />
+							Capture Photo
 						</Button>
-						<Button onclick={toggleCamera} variant="outline" disabled={loading || !videoReady}>
-							🔄 Switch Camera
+						<Button onclick={toggleCamera} variant="outline" disabled={loading || !videoReady} class="gap-2">
+							<SwitchCamera class="h-4 w-4" />
+							Switch
 						</Button>
 						{#if !loading}
-							<Button onclick={stopCamera} variant="outline">
-								Close Camera
+							<Button onclick={stopCamera} variant="outline" class="gap-2">
+								<X class="h-4 w-4" />
+								Close
 							</Button>
 						{/if}
 					</div>
@@ -231,22 +248,27 @@
 			{/if}
 
 			{#if images.length > 0}
-				<div class="space-y-3">
-					<div>
-						<p class="mb-3 text-sm font-medium">{images.length} image(s) selected</p>
+				<div class="space-y-4">
+					<div class="rounded-lg bg-muted/50 p-4">
+						<div class="flex items-center gap-2 mb-4">
+							<Badge variant="secondary" class="gap-1.5">
+								<ImageIcon class="h-3 w-3" />
+								{images.length} {images.length === 1 ? 'image' : 'images'}
+							</Badge>
+						</div>
 						
 						<!-- Image Previews Grid -->
 						<div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
 							{#each images as image, index}
-								<div class="group relative aspect-square overflow-hidden rounded-lg border bg-muted">
+								<div class="group relative aspect-square overflow-hidden rounded-xl border-2 bg-muted shadow-sm hover:shadow-md transition-shadow">
 									<img
 										src={imagePreviews[index]}
 										alt={image.name}
 										class="h-full w-full object-cover"
 									/>
-									<div class="absolute inset-0 bg-black/60 opacity-0 transition-opacity group-hover:opacity-100">
-										<div class="flex h-full flex-col items-center justify-center gap-2 p-2">
-											<p class="truncate text-xs text-white" title={image.name}>
+									<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
+										<div class="flex h-full flex-col items-center justify-end gap-2 p-3">
+											<p class="truncate w-full text-center text-xs text-white font-medium" title={image.name}>
 												{image.name}
 											</p>
 											<Button
@@ -254,7 +276,9 @@
 												variant="destructive"
 												onclick={() => removeImage(index)}
 												disabled={loading}
+												class="gap-1.5 w-full"
 											>
+												<X class="h-3 w-3" />
 												Remove
 											</Button>
 										</div>
@@ -264,15 +288,18 @@
 						</div>
 					</div>
 
-					<div class="flex flex-wrap gap-2">
-						<Button onclick={onextract} disabled={loading}>
+					<div class="flex flex-wrap gap-2 pt-2">
+						<Button onclick={onextract} disabled={loading} class="gap-2 flex-1 sm:flex-none">
+							<Sparkles class="h-4 w-4" />
 							{loading ? 'Extracting...' : 'Extract Product Info'}
 						</Button>
-						<Button onclick={onassess} disabled={loading} variant="secondary">
-							{loading ? 'Assessing...' : 'Assess Product Directly'}
+						<Button onclick={onassess} disabled={loading} variant="secondary" class="gap-2 flex-1 sm:flex-none">
+							<Sparkles class="h-4 w-4" />
+							{loading ? 'Assessing...' : 'Assess Directly'}
 						</Button>
-						<Button onclick={handleReset} variant="outline" disabled={loading}>
-							Reset All
+						<Button onclick={handleReset} variant="outline" disabled={loading} class="gap-2">
+							<RefreshCw class="h-4 w-4" />
+							Reset
 						</Button>
 					</div>
 				</div>

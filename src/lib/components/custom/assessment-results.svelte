@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card';
+	import { CheckCircle2, XCircle, Trophy, TrendingUp, TrendingDown } from '@lucide/svelte';
 	import type { ProductAssessment } from '$lib/ai/base';
 
 	interface Props {
@@ -9,53 +10,58 @@
 	let { assessment }: Props = $props();
 </script>
 
-<Card.Root>
-	<Card.Header>
-		<Card.Title>Assessment Results</Card.Title>
+<Card.Root class="border-2 shadow-lg bg-gradient-to-br from-background to-primary/5">
+	<Card.Header class="space-y-1">
+		<div class="flex items-center gap-2">
+			<div class="rounded-lg bg-primary/10 p-2">
+				<Trophy class="h-5 w-5 text-primary" />
+			</div>
+			<Card.Title class="text-xl">Assessment Results</Card.Title>
+		</div>
 	</Card.Header>
 	<Card.Content class="space-y-6">
 		<!-- Score -->
-		<div class="text-center">
-			<div class="mb-2 text-6xl font-bold text-primary">
-				{assessment.score.toFixed(1)}/10
+		<div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-background p-8 text-center border-2">
+			<div class="absolute top-4 right-4 opacity-10">
+				<Trophy class="h-16 w-16" />
 			</div>
-			<p class="text-sm text-muted-foreground">Overall Score</p>
+			<div class="mb-3 text-7xl font-bold bg-gradient-to-br from-primary to-primary/60 bg-clip-text text-transparent">
+				{assessment.score.toFixed(1)}<span class="text-4xl">/10</span>
+			</div>
+			<p class="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Overall Score</p>
 		</div>
 
 		<!-- Pros -->
-		<div class="space-y-3">
-			<h3 class="flex items-center gap-2 text-lg font-semibold text-green-600 dark:text-green-400">
-				<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-					<polyline points="22 4 12 14.01 9 11.01"></polyline>
-				</svg>
-				Pros
+		<div class="space-y-4 rounded-xl bg-green-50 dark:bg-green-950/20 p-5 border-2 border-green-200 dark:border-green-900">
+			<h3 class="flex items-center gap-2 text-lg font-bold text-green-700 dark:text-green-400">
+				<div class="rounded-lg bg-green-100 dark:bg-green-900/40 p-1.5">
+					<TrendingUp class="h-5 w-5" />
+				</div>
+				Strengths
 			</h3>
-			<ul class="space-y-2">
+			<ul class="space-y-3">
 				{#each assessment.pros as pro}
-					<li class="flex gap-2 text-sm">
-						<span class="text-green-600 dark:text-green-400">✓</span>
-						<span>{pro}</span>
+					<li class="flex gap-3 items-start">
+						<CheckCircle2 class="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+						<span class="text-sm leading-relaxed">{pro}</span>
 					</li>
 				{/each}
 			</ul>
 		</div>
 
 		<!-- Cons -->
-		<div class="space-y-3">
-			<h3 class="flex items-center gap-2 text-lg font-semibold text-red-600 dark:text-red-400">
-				<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<circle cx="12" cy="12" r="10"></circle>
-					<line x1="15" y1="9" x2="9" y2="15"></line>
-					<line x1="9" y1="9" x2="15" y2="15"></line>
-				</svg>
-				Cons
+		<div class="space-y-4 rounded-xl bg-red-50 dark:bg-red-950/20 p-5 border-2 border-red-200 dark:border-red-900">
+			<h3 class="flex items-center gap-2 text-lg font-bold text-red-700 dark:text-red-400">
+				<div class="rounded-lg bg-red-100 dark:bg-red-900/40 p-1.5">
+					<TrendingDown class="h-5 w-5" />
+				</div>
+				Concerns
 			</h3>
-			<ul class="space-y-2">
+			<ul class="space-y-3">
 				{#each assessment.cons as con}
-					<li class="flex gap-2 text-sm">
-						<span class="text-red-600 dark:text-red-400">✗</span>
-						<span>{con}</span>
+					<li class="flex gap-3 items-start">
+						<XCircle class="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+						<span class="text-sm leading-relaxed">{con}</span>
 					</li>
 				{/each}
 			</ul>

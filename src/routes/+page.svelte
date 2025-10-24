@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as Alert from '$lib/components/ui/alert';
 	import * as Tabs from '$lib/components/ui/tabs';
+	import { Sparkles, AlertCircle } from '@lucide/svelte';
 	import type { BaseAIClient, Product, ProductAssessment } from '$lib/ai/base';
 	import ImageUpload from '$lib/components/custom/image-upload.svelte';
 	import ProductEntry from '$lib/components/custom/product-entry.svelte';
@@ -96,17 +97,27 @@
 	}
 </script>
 
-<div class="container mx-auto max-w-4xl p-6">
-	<div class="mb-8">
-		<h1 class="mb-2 text-4xl font-bold">Skeen - Skincare Product Assessor</h1>
-		<p class="text-muted-foreground">Enter product information or upload images to get an AI-powered assessment</p>
+<div class="container mx-auto max-w-5xl p-4 sm:p-6 lg:p-8">
+	<!-- Hero Section -->
+	<div class="mb-8 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background p-8 sm:p-10">
+		<div class="flex items-center gap-3 mb-4">
+			<div class="rounded-xl bg-primary/20 p-3">
+				<Sparkles class="h-8 w-8 text-primary" />
+			</div>
+			<h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
+				Skeen
+			</h1>
+		</div>
+		<p class="text-lg text-muted-foreground max-w-2xl">
+			Your AI-powered skincare product analyzer. Upload images or enter product details to get instant, science-backed assessments.
+		</p>
 	</div>
 
 	<!-- Tabs for Manual Input and Image Upload -->
-	<Tabs.Root bind:value={activeTab} class="mb-6">
-		<Tabs.List class="grid w-full grid-cols-2">
-			<Tabs.Trigger value="image">Image Upload</Tabs.Trigger>
-			<Tabs.Trigger value="productinfo">Product Info</Tabs.Trigger>
+	<Tabs.Root bind:value={activeTab} class="mb-8">
+		<Tabs.List class="grid w-full grid-cols-2 p-1 bg-muted/50">
+			<Tabs.Trigger value="image" class="gap-2">📸 Image Upload</Tabs.Trigger>
+			<Tabs.Trigger value="productinfo" class="gap-2">✍️ Product Info</Tabs.Trigger>
 		</Tabs.List>
 
 		<!-- Image Upload Tab -->
@@ -136,7 +147,8 @@
 
 	<!-- Error Display -->
 	{#if error}
-		<Alert.Root variant="destructive" class="mb-6">
+		<Alert.Root variant="destructive" class="mb-6 border-destructive/50">
+			<AlertCircle class="h-4 w-4" />
 			<Alert.Title>Error</Alert.Title>
 			<Alert.Description>{error}</Alert.Description>
 		</Alert.Root>
