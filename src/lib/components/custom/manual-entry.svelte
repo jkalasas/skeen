@@ -3,6 +3,7 @@
 	import * as Card from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
+	import { Textarea } from '$lib/components/ui/textarea';
 
 	interface Props {
 		loading?: boolean;
@@ -64,7 +65,7 @@
 
 			<div class="space-y-2">
 				<Label for="manual-ingredients">Ingredients (comma-separated, optional)</Label>
-				<Input
+				<Textarea
 					id="manual-ingredients"
 					bind:value={ingredients}
 					placeholder="e.g., Hyaluronic Acid, Ceramides, Niacinamide"
