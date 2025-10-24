@@ -1,14 +1,16 @@
 <script lang="ts">
 	import * as Alert from '$lib/components/ui/alert';
 	import * as Tabs from '$lib/components/ui/tabs';
-	import type { Product, ProductAssessment } from '$lib/ai/base';
+	import type { BaseAIClient, Product, ProductAssessment } from '$lib/ai/base';
 	import ImageUpload from '$lib/components/custom/image-upload.svelte';
 	import ProductEntry from '$lib/components/custom/product-entry.svelte';
 	import ProductInfo from '$lib/components/custom/product-info.svelte';
 	import AssessmentResults from '$lib/components/custom/assessment-results.svelte';
-	import { getAiClientContext } from '$lib/states/ai-client';
+	import type { PageData } from './$types';
 
-	const aiClient = getAiClientContext();
+	let {data}: { data: PageData } = $props();
+
+	const aiClient = data.aiClient as BaseAIClient;
 
 	let images = $state<File[]>([]);
 	let loading = $state(false);
