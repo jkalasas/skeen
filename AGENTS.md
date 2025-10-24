@@ -20,7 +20,10 @@ The application is structured as a standard static SvelteKit project.
 *   `src/lib/ai`: Contains the logic for interacting with the Google Gemini AI.
     *   `base.ts`: Defines the interface for the AI client.
     *   `gemini.ts`: Implements the AI client using the Gemini API.
-*   `src/lib/components/ui`: Contains the UI components from `shadcn-svelte`.
+*   `src/lib/components`: Contains reusable components
+    *   `ui`: Contains the UI components from `shadcn-svelte`.
+    *   `custom`: Contains the custom UI components made for this app.
+
 
 ## UI Components
 
