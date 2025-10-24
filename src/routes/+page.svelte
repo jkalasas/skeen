@@ -7,6 +7,7 @@
 	import ProductEntry from '$lib/components/custom/product-entry.svelte';
 	import ProductInfo from '$lib/components/custom/product-info.svelte';
 	import AssessmentResults from '$lib/components/custom/assessment-results.svelte';
+	import { historyStore } from '$lib/stores/history.svelte';
 	import type { PageData } from './$types';
 
 	let {data}: { data: PageData } = $props();
@@ -68,6 +69,23 @@
 			// Now assess the product
 			if (product) {
 				assessment = await aiClient.assessProduct(product);
+				
+				// Save to history with deep clone to ensure serializability
+				if (assessment) {
+					const cleanProduct = JSON.parse(JSON.stringify({
+						name: product.name,
+						description: product.description || undefined,
+						ingredients: product.ingredients || undefined
+					}));
+					
+					const cleanAssessment = JSON.parse(JSON.stringify({
+						pros: assessment.pros,
+						cons: assessment.cons,
+						score: assessment.score
+					}));
+					
+					await historyStore.add(cleanProduct, cleanAssessment);
+				}
 			}
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to assess product';
