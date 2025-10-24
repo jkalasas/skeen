@@ -6,8 +6,9 @@
 	import ProductEntry from '$lib/components/custom/product-entry.svelte';
 	import ProductInfo from '$lib/components/custom/product-info.svelte';
 	import AssessmentResults from '$lib/components/custom/assessment-results.svelte';
+	import { getAiClientContext } from '$lib/states/ai-client';
 
-	let { data } = $props();
+	const aiClient = getAiClientContext();
 
 	let images = $state<File[]>([]);
 	let loading = $state(false);
@@ -36,7 +37,7 @@
 		assessment = null;
 
 		try {
-		product = await data.aiClient.extractProductInfo(images);
+		product = await aiClient.extractProductInfo(images);
 		activeTab = 'productinfo';
 	} catch (err) {
 		error = err instanceof Error ? err.message : 'Failed to extract product information';
@@ -58,12 +59,12 @@
 		try {
 			// If no product info exists but we have images, extract it first
 			if (!product && images.length > 0) {
-				product = await data.aiClient.extractProductInfo(images);
+				product = await aiClient.extractProductInfo(images);
 			}
 			
 			// Now assess the product
 			if (product) {
-				assessment = await data.aiClient.assessProduct(product);
+				assessment = await aiClient.assessProduct(product);
 			}
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to assess product';
