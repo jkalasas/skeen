@@ -1,6 +1,7 @@
 import { GoogleGenAI, Type, type Content, type GenerateContentConfig } from '@google/genai';
 
 import { BaseAIClient, type Product, type ProductAssessment } from './base';
+import { imageFileToBase64 } from '$lib/image';
 
 const BASE_CONFIG: GenerateContentConfig = {
 	thinkingConfig: {
@@ -11,6 +12,7 @@ const BASE_CONFIG: GenerateContentConfig = {
 
 const PRODUCT_INFO_CONFIG: GenerateContentConfig = {
 	...BASE_CONFIG,
+	systemInstruction: 'Provide a detailed assessment of the skincare product.',
 	responseSchema: {
 		type: Type.OBJECT,
 		properties: {
@@ -36,6 +38,7 @@ const PRODUCT_INFO_CONFIG: GenerateContentConfig = {
 
 const EXTRACT_PRODUCT_INFO_CONFIG: GenerateContentConfig = {
 	...BASE_CONFIG,
+	systemInstruction: 'Extract the following fields about the skincare product.',
 	responseSchema: {
 		type: Type.OBJECT,
 		properties: {
@@ -55,12 +58,6 @@ const EXTRACT_PRODUCT_INFO_CONFIG: GenerateContentConfig = {
 	}
 };
 
-const PRODUCT_INFO_PROMPT =
-	'You are an expert skincare product reviewer. Given the information of the product, provide a detailed assessment including the pros and cons, as well as an overall score from 0 to 10.';
-
-const EXTRACT_PRODUCT_INFO_PROMPT =
-	'You are an expert at extracting information about skincare products. Given the images of the product, extract the name, description, and ingredients list.';
-
 export class GeminiAIClient extends BaseAIClient {
 	private client: GoogleGenAI;
 
@@ -70,21 +67,20 @@ export class GeminiAIClient extends BaseAIClient {
 		this.client = new GoogleGenAI({ apiKey });
 	}
 
-	private buildContent(prompt: string, data: Record<string, any>): Content[] {
+	private buildContent(data: Record<string, any>): Content[] {
 		return [
 			{
 				role: 'user',
-				parts: [{ text: prompt }, { text: JSON.stringify(data) }]
+				parts: [{ text: JSON.stringify(data) }]
 			}
 		];
 	}
 
-	private async buildContentFromImages(prompt: string, images: File[]): Promise<Content[]> {
+	private async buildContentFromImages(images: File[]): Promise<Content[]> {
 		return [
 			{
 				role: 'user',
 				parts: [
-					{ text: prompt },
 					...(await Promise.all(
 						images.map(async (image) => ({
 							inlineData: {
@@ -98,33 +94,33 @@ export class GeminiAIClient extends BaseAIClient {
 		];
 	}
 
-	async assessProduct(product: File): Promise<ProductAssessment> {
+	async assessProduct(product: Product): Promise<ProductAssessment> {
 		const response = await this.client.models.generateContent({
-			model: 'gemini-2.5-flash-light',
-			contents: this.buildContent(PRODUCT_INFO_PROMPT, product),
+			model: 'gemini-flash-lite-latest',
+			contents: this.buildContent(product),
 			config: PRODUCT_INFO_CONFIG
 		});
 
-		return JSON.parse(response.data as string) as ProductAssessment;
+		return JSON.parse(response.text as string) as ProductAssessment;
 	}
 
 	async assessProductFromImages(images: File[]): Promise<ProductAssessment> {
 		const response = await this.client.models.generateContent({
-			model: 'gemini-2.5-flash-light',
-			contents: await this.buildContentFromImages(PRODUCT_INFO_PROMPT, images),
+			model: 'gemini-flash-lite-latest',
+			contents: await this.buildContentFromImages(images),
 			config: PRODUCT_INFO_CONFIG
 		});
 
-		return JSON.parse(response.data as string) as ProductAssessment;
+		return JSON.parse(response.text as string) as ProductAssessment;
 	}
 
 	async extractProductInfo(images: File[]): Promise<Product> {
 		const response = await this.client.models.generateContent({
-			model: 'gemini-2.5-flash-light',
-			contents: await this.buildContentFromImages(EXTRACT_PRODUCT_INFO_PROMPT, images),
+			model: 'gemini-flash-lite-latest',
+			contents: await this.buildContentFromImages(images),
 			config: EXTRACT_PRODUCT_INFO_CONFIG
 		});
 
-		return JSON.parse(response.data as string) as Product;
+		return JSON.parse(response.text as string) as Product;
 	}
 }
