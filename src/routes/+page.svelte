@@ -7,7 +7,6 @@
 	import ProductInfo from '$lib/components/custom/product-info.svelte';
 	import AssessmentResults from '$lib/components/custom/assessment-results.svelte';
 	import type { PageData } from './$types';
-	import { PUBLIC_GEMINI_KEY } from '$env/static/public';
 
 	let {data}: { data: PageData } = $props();
 
@@ -29,7 +28,6 @@
 	}
 
 	async function extractProductInfo() {
-		console.log(PUBLIC_GEMINI_KEY);
 		if (images.length === 0) {
 			error = 'Please select at least one image';
 			return;
