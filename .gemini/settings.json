@@ -1,4 +1,5 @@
 {
+	"contextFileName": "AGENTS.md",
 	"mcpServers": {
 		"svelte": {
 			"url": "https://mcp.svelte.dev/mcp"
