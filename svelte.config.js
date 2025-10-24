@@ -6,7 +6,15 @@ const config = {
 	// Consult https://svelte.dev/docs/kit/integrations
 	// for more information about preprocessors
 	preprocess: vitePreprocess(),
-	kit: { adapter: adapter() }
+	kit: {
+		adapter: adapter(),
+		paths: {
+			base: process.env.NODE_ENV === 'production' ? '/skeen' : ''
+		},
+		output: {
+			bundleStrategy: 'single'
+		}
+	}
 };
 
 export default config;
