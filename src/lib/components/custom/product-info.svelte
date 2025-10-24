@@ -6,11 +6,9 @@
 
 	interface Props {
 		product: Product;
-		loading?: boolean;
-		onassess: () => void;
 	}
 
-	let { product, loading = false, onassess }: Props = $props();
+	let { product }: Props = $props();
 </script>
 
 <Card.Root class="mb-6">
@@ -41,9 +39,4 @@
 			</div>
 		{/if}
 	</Card.Content>
-	<Card.Footer>
-		<Button onclick={onassess} disabled={loading}>
-			{loading ? 'Assessing...' : 'Assess This Product'}
-		</Button>
-	</Card.Footer>
 </Card.Root>

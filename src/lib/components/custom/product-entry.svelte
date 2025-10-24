@@ -82,7 +82,7 @@
 			</div>
 
 			<Button onclick={handleSubmit} disabled={loading || !name.trim()}>
-				Use This Product Info
+				{loading ? 'Assessing...' : 'Assess Product'}
 			</Button>
 		</div>
 	</Card.Content>

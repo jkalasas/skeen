@@ -56,10 +56,14 @@
 		assessment = null;
 
 		try {
+			// If no product info exists but we have images, extract it first
+			if (!product && images.length > 0) {
+				product = await data.aiClient.extractProductInfo(images);
+			}
+			
+			// Now assess the product
 			if (product) {
 				assessment = await data.aiClient.assessProduct(product);
-			} else {
-				assessment = await data.aiClient.assessProductFromImages(images);
 			}
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to assess product';
@@ -68,13 +72,16 @@
 		}
 	}
 
-	function handleManualSubmit(data: { name: string; description?: string; ingredients: string[] }) {
+	async function handleManualSubmit(data: { name: string; description?: string; ingredients: string[] }) {
 		product = {
 			name: data.name,
 			description: data.description,
 			ingredients: data.ingredients
 		};
 		error = null;
+		
+		// Immediately assess the product
+		await assessProduct();
 	}
 
 	function reset() {
@@ -133,8 +140,8 @@
 	{/if}
 
 	<!-- Product Information -->
-	{#if product}
-		<ProductInfo {product} {loading} onassess={assessProduct} />
+	{#if product && assessment}
+		<ProductInfo {product} />
 	{/if}
 
 	<!-- Assessment Results -->
