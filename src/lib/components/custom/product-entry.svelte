@@ -8,13 +8,22 @@
 	interface Props {
 		loading?: boolean;
 		onsubmit: (data: { name: string; description?: string; ingredients: string[] }) => void;
+		initialName?: string;
+		initialDescription?: string;
+		initialIngredients?: string[];
 	}
 
-	let { loading = false, onsubmit }: Props = $props();
+	let { loading = false, onsubmit, initialName = '', initialDescription = '', initialIngredients = [] }: Props = $props();
 
-	let name = $state('');
-	let description = $state('');
-	let ingredients = $state('');
+	let name = $state(initialName);
+	let description = $state(initialDescription);
+	let ingredients = $state(initialIngredients.join(', '));
+
+	$effect(() => {
+		name = initialName;
+		description = initialDescription;
+		ingredients = initialIngredients.join(', ');
+	});
 
 	function handleSubmit() {
 		if (!name.trim()) {
@@ -40,8 +49,8 @@
 
 <Card.Root>
 	<Card.Header>
-		<Card.Title>Manual Product Entry</Card.Title>
-		<Card.Description>Enter product information manually</Card.Description>
+		<Card.Title>Product</Card.Title>
+		<Card.Description>Enter your product information</Card.Description>
 	</Card.Header>
 	<Card.Content>
 		<div class="space-y-4">

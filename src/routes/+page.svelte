@@ -3,7 +3,7 @@
 	import * as Tabs from '$lib/components/ui/tabs';
 	import type { Product, ProductAssessment } from '$lib/ai/base';
 	import ImageUpload from '$lib/components/custom/image-upload.svelte';
-	import ManualEntry from '$lib/components/custom/manual-entry.svelte';
+	import ProductEntry from '$lib/components/custom/product-entry.svelte';
 	import ProductInfo from '$lib/components/custom/product-info.svelte';
 	import AssessmentResults from '$lib/components/custom/assessment-results.svelte';
 
@@ -14,8 +14,9 @@
 	let error = $state<string | null>(null);
 	let product = $state<Product | null>(null);
 	let assessment = $state<ProductAssessment | null>(null);
+	let activeTab = $state('image');
 
-	let manualEntryComponent = $state<ManualEntry | null>(null);
+	let productEntryComponent = $state<ProductEntry | null>(null);
 
 	function handleImagesChange() {
 		product = null;
@@ -35,12 +36,13 @@
 		assessment = null;
 
 		try {
-			product = await data.aiClient.extractProductInfo(images);
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to extract product information';
-		} finally {
-			loading = false;
-		}
+		product = await data.aiClient.extractProductInfo(images);
+		activeTab = 'productinfo';
+	} catch (err) {
+		error = err instanceof Error ? err.message : 'Failed to extract product information';
+	} finally {
+		loading = false;
+	}
 	}
 
 	async function assessProduct() {
@@ -80,7 +82,7 @@
 		product = null;
 		assessment = null;
 		error = null;
-		manualEntryComponent?.reset();
+		productEntryComponent?.reset();
 	}
 </script>
 
@@ -91,10 +93,10 @@
 	</div>
 
 	<!-- Tabs for Manual Input and Image Upload -->
-	<Tabs.Root value="image" class="mb-6">
+	<Tabs.Root bind:value={activeTab} class="mb-6">
 		<Tabs.List class="grid w-full grid-cols-2">
 			<Tabs.Trigger value="image">Image Upload</Tabs.Trigger>
-			<Tabs.Trigger value="manual">Manual Entry</Tabs.Trigger>
+			<Tabs.Trigger value="productinfo">Product Info</Tabs.Trigger>
 		</Tabs.List>
 
 		<!-- Image Upload Tab -->
@@ -109,12 +111,15 @@
 			/>
 		</Tabs.Content>
 
-		<!-- Manual Input Tab -->
-		<Tabs.Content value="manual">
-			<ManualEntry
-				bind:this={manualEntryComponent}
+		<!-- Product Info Tab -->
+		<Tabs.Content value="productinfo">
+			<ProductEntry
+				bind:this={productEntryComponent}
 				{loading}
 				onsubmit={handleManualSubmit}
+				initialName={product?.name ?? ''}
+				initialDescription={product?.description ?? ''}
+				initialIngredients={product?.ingredients ?? []}
 			/>
 		</Tabs.Content>
 	</Tabs.Root>
