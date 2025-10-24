@@ -13,7 +13,7 @@ This is a SvelteKit project for a web application called "skeen". Based on the d
 
 ## Architecture
 
-The application is structured as a standard SvelteKit project.
+The application is structured as a standard static SvelteKit project.
 
 *   `src/routes`: Contains the application's pages and layouts.
 *   `src/lib`: Contains reusable libraries and components.
