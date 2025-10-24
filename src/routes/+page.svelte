@@ -5,6 +5,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Badge } from '$lib/components/ui/badge';
+	import * as Tabs from '$lib/components/ui/tabs';
 	import type { Product, ProductAssessment } from '$lib/ai/base';
 
 	let { data } = $props();
@@ -110,98 +111,110 @@
 <div class="container mx-auto max-w-4xl p-6">
 	<div class="mb-8">
 		<h1 class="mb-2 text-4xl font-bold">Skeen - Skincare Product Assessor</h1>
-		<p class="text-muted-foreground">Upload images of your skincare product to get an AI-powered assessment</p>
+		<p class="text-muted-foreground">Enter product information or upload images to get an AI-powered assessment</p>
 	</div>
 
-	<!-- Manual Input -->
-	<Card.Root class="mb-6">
-		<Card.Header>
-			<Card.Title>Manual Product Entry</Card.Title>
-			<Card.Description>Enter product information manually</Card.Description>
-		</Card.Header>
-		<Card.Content>
-			<div class="space-y-4">
-				<div class="space-y-2">
-					<Label for="manual-name">Product Name *</Label>
-					<Input
-						id="manual-name"
-						bind:value={manualName}
-						placeholder="e.g., CeraVe Moisturizing Cream"
-					/>
-				</div>
+	<!-- Tabs for Manual Input and Image Upload -->
+	<Tabs.Root value="image" class="mb-6">
+		<Tabs.List class="grid w-full grid-cols-2">
+			<Tabs.Trigger value="image">Image Upload</Tabs.Trigger>
+			<Tabs.Trigger value="manual">Manual Entry</Tabs.Trigger>
+		</Tabs.List>
 
-				<div class="space-y-2">
-					<Label for="manual-description">Description (optional)</Label>
-					<Input
-						id="manual-description"
-						bind:value={manualDescription}
-						placeholder="e.g., Daily moisturizing cream for dry skin"
-					/>
-				</div>
+		<!-- Image Upload Tab -->
+		<Tabs.Content value="image">
+			<Card.Root>
+				<Card.Header>
+					<Card.Title>Upload Product Images</Card.Title>
+					<Card.Description>Select one or more images of your skincare product</Card.Description>
+				</Card.Header>
+				<Card.Content>
+					<div class="space-y-4">
+						<div class="space-y-2">
+							<Label for="file-upload">Product Images</Label>
+							<Input
+								id="file-upload"
+								bind:ref={fileInput}
+								type="file"
+								accept="image/*"
+								multiple
+								onchange={handleFileSelect}
+							/>
+						</div>
 
-				<div class="space-y-2">
-					<Label for="manual-ingredients">Ingredients (comma-separated, optional)</Label>
-					<Input
-						id="manual-ingredients"
-						bind:value={manualIngredients}
-						placeholder="e.g., Hyaluronic Acid, Ceramides, Niacinamide"
-					/>
-				</div>
+						{#if images.length > 0}
+							<div class="space-y-3">
+								<div>
+									<p class="mb-2 text-sm font-medium">{images.length} image(s) selected:</p>
+									<div class="flex flex-wrap gap-2">
+										{#each images as image}
+											<Badge variant="secondary">{image.name}</Badge>
+										{/each}
+									</div>
+								</div>
 
-				<Button onclick={useManualInput} disabled={loading}>
-					Use This Product Info
-				</Button>
-			</div>
-		</Card.Content>
-	</Card.Root>
-
-	<!-- Image Upload -->
-	<Card.Root class="mb-6">
-		<Card.Header>
-			<Card.Title>Upload Product Images</Card.Title>
-			<Card.Description>Or select one or more images of your skincare product</Card.Description>
-		</Card.Header>
-		<Card.Content>
-			<div class="space-y-4">
-				<div class="space-y-2">
-					<Label for="file-upload">Product Images</Label>
-					<Input
-						id="file-upload"
-						bind:ref={fileInput}
-						type="file"
-						accept="image/*"
-						multiple
-						onchange={handleFileSelect}
-					/>
-				</div>
-
-				{#if images.length > 0}
-					<div class="space-y-3">
-						<div>
-							<p class="mb-2 text-sm font-medium">{images.length} image(s) selected:</p>
-							<div class="flex flex-wrap gap-2">
-								{#each images as image}
-									<Badge variant="secondary">{image.name}</Badge>
-								{/each}
+								<div class="flex flex-wrap gap-2">
+									<Button onclick={extractProductInfo} disabled={loading}>
+										{loading ? 'Extracting...' : 'Extract Product Info'}
+									</Button>
+									<Button onclick={assessProduct} disabled={loading} variant="secondary">
+										{loading ? 'Assessing...' : 'Assess Product Directly'}
+									</Button>
+									<Button onclick={reset} variant="outline" disabled={loading}>
+										Reset
+									</Button>
+								</div>
 							</div>
+						{/if}
+					</div>
+				</Card.Content>
+			</Card.Root>
+		</Tabs.Content>
+
+		<!-- Manual Input Tab -->
+		<Tabs.Content value="manual">
+			<Card.Root>
+				<Card.Header>
+					<Card.Title>Manual Product Entry</Card.Title>
+					<Card.Description>Enter product information manually</Card.Description>
+				</Card.Header>
+				<Card.Content>
+					<div class="space-y-4">
+						<div class="space-y-2">
+							<Label for="manual-name">Product Name *</Label>
+							<Input
+								id="manual-name"
+								bind:value={manualName}
+								placeholder="e.g., CeraVe Moisturizing Cream"
+							/>
 						</div>
 
-						<div class="flex flex-wrap gap-2">
-							<Button onclick={extractProductInfo} disabled={loading}>
-								{loading ? 'Extracting...' : 'Extract Product Info'}
-							</Button>
-							<Button onclick={assessProduct} disabled={loading} variant="secondary">
-								{loading ? 'Assessing...' : 'Assess Product Directly'}
-							</Button>
-							<Button onclick={reset} variant="outline" disabled={loading}>
-								Reset
-							</Button>
+						<div class="space-y-2">
+							<Label for="manual-description">Description (optional)</Label>
+							<Input
+								id="manual-description"
+								bind:value={manualDescription}
+								placeholder="e.g., Daily moisturizing cream for dry skin"
+							/>
 						</div>
+
+						<div class="space-y-2">
+							<Label for="manual-ingredients">Ingredients (comma-separated, optional)</Label>
+							<Input
+								id="manual-ingredients"
+								bind:value={manualIngredients}
+								placeholder="e.g., Hyaluronic Acid, Ceramides, Niacinamide"
+							/>
+						</div>
+
+						<Button onclick={useManualInput} disabled={loading}>
+							Use This Product Info
+						</Button>
 					</div>
-				{/if}
-			</div>
-		</Card.Content>
-	</Card.Root>
+				</Card.Content>
+			</Card.Root>
+		</Tabs.Content>
+	</Tabs.Root>
 
 	<!-- Error Display -->
 	{#if error}
