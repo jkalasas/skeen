@@ -33,7 +33,8 @@ const PRODUCT_INFO_CONFIG: GenerateContentConfig = {
 				description: 'A score from 0 to 10 evaluating the product overall.'
 			}
 		}
-	}
+	},
+	temperature: 0,
 };
 
 const EXTRACT_PRODUCT_INFO_CONFIG: GenerateContentConfig = {
@@ -55,7 +56,8 @@ const EXTRACT_PRODUCT_INFO_CONFIG: GenerateContentConfig = {
 				}
 			}
 		}
-	}
+	},
+	temperature: 0.7,
 };
 
 export class GeminiAIClient extends BaseAIClient {
