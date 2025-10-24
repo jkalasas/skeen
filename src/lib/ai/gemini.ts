@@ -10,7 +10,7 @@ const BASE_CONFIG: GenerateContentConfig = {
 	responseMimeType: 'application/json'
 };
 
-const PRODUCT_INFO_CONFIG: GenerateContentConfig = {
+const ASSESS_PRODUCT_INFO_CONFIG: GenerateContentConfig = {
 	...BASE_CONFIG,
 	systemInstruction: 'Provide a detailed assessment of the skincare product.',
 	responseSchema: {
@@ -34,7 +34,7 @@ const PRODUCT_INFO_CONFIG: GenerateContentConfig = {
 			}
 		}
 	},
-	temperature: 0,
+	temperature: 0.3,
 };
 
 const EXTRACT_PRODUCT_INFO_CONFIG: GenerateContentConfig = {
@@ -57,7 +57,7 @@ const EXTRACT_PRODUCT_INFO_CONFIG: GenerateContentConfig = {
 			}
 		}
 	},
-	temperature: 0.7,
+	temperature: 0,
 };
 
 export class GeminiAIClient extends BaseAIClient {
@@ -100,7 +100,7 @@ export class GeminiAIClient extends BaseAIClient {
 		const response = await this.client.models.generateContent({
 			model: 'gemini-flash-lite-latest',
 			contents: this.buildContent(product),
-			config: PRODUCT_INFO_CONFIG
+			config: ASSESS_PRODUCT_INFO_CONFIG
 		});
 
 		return JSON.parse(response.text as string) as ProductAssessment;
@@ -110,7 +110,7 @@ export class GeminiAIClient extends BaseAIClient {
 		const response = await this.client.models.generateContent({
 			model: 'gemini-flash-lite-latest',
 			contents: await this.buildContentFromImages(images),
-			config: PRODUCT_INFO_CONFIG
+			config: ASSESS_PRODUCT_INFO_CONFIG
 		});
 
 		return JSON.parse(response.text as string) as ProductAssessment;
