@@ -7,6 +7,7 @@ This is a SvelteKit project for a web application called "skeen". Based on the d
 *   **Framework:** SvelteKit
 *   **Language:** TypeScript
 *   **Styling:** Tailwind CSS
+*   **UI Components:** shadcn-svelte
 *   **AI:** Google Gemini (@google/genai)
 *   **Bundler:** Vite
 
@@ -19,15 +20,21 @@ The application is structured as a standard SvelteKit project.
 *   `src/lib/ai`: Contains the logic for interacting with the Google Gemini AI.
     *   `base.ts`: Defines the interface for the AI client.
     *   `gemini.ts`: Implements the AI client using the Gemini API.
+*   `src/lib/components/ui`: Contains the UI components from `shadcn-svelte`.
 
-# Building and Running
+## UI Components
+
+The project uses `shadcn-svelte` for its UI components. These components are located in `src/lib/components/ui` and are styled with Tailwind CSS.
+When you need documentation for `shadcn-svelte`, check the local reference at `.vscode/llm-docs/shadcn-svelte.md`.
+
+## Building and Running
 
 ## Development
 
 To run the application in development mode, use the following command:
 
 ```bash
-npm run dev
+bun run dev
 ```
 
 ## Building
@@ -35,7 +42,7 @@ npm run dev
 To build the application for production, use the following command:
 
 ```bash
-npm run build
+bun run build
 ```
 
 This will create a static version of the application in the `build` directory.
@@ -45,7 +52,7 @@ This will create a static version of the application in the `build` directory.
 To preview the production build locally, use the following command:
 
 ```bash
-npm run preview
+bun run preview
 ```
 
 # Development Conventions
@@ -54,12 +61,12 @@ npm run preview
 
 The project uses ESLint for linting and Prettier for code formatting.
 
-*   **Lint:** `npm run lint`
-*   **Format:** `npm run format`
+*   **Lint:** `bun run lint`
+*   **Format:** `bun run format`
 
 ## Type Checking
 
 The project uses TypeScript for static type checking.
 
-*   **Check:** `npm run check`
-*   **Check (watch mode):** `npm run check:watch`
+*   **Check:** `bun run check`
+*   **Check (watch mode):** `bun run check:watch`
