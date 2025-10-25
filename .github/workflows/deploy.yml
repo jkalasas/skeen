@@ -31,7 +31,8 @@ jobs:
         run: bun install
 
       - name: Copy env file
-        run: cp .env.example .env
+        run: |
+          echo "PUBLIC_GEMINI_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env
 
       - name: Build
         run: bun run build
