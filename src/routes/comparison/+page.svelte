@@ -7,7 +7,9 @@
 	import MultiProductEntry from '$lib/components/custom/multi-product-entry.svelte';
 	import ProductInfo from '$lib/components/custom/product-info.svelte';
 	import ComparisonResults from '$lib/components/custom/comparison-results.svelte';
+	import ProductSearch from '$lib/components/custom/product-search.svelte';
 	import { profileStore } from '$lib/stores/profile.svelte';
+	import { productsStore } from '$lib/stores/products.svelte';
 	import type { PageData } from './$types';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -21,6 +23,7 @@
 
 	onMount(() => {
 		profileStore.load();
+		productsStore.load();
 	});
 
 	let loading = $state(false);
@@ -28,6 +31,8 @@
 	let products = $state<(Product | null)[]>([null, null]);
 	let comparison = $state<ProductComparison | null>(null);
 	let showProfilePrompt = $state(false);
+	let showProductSearch = $state(false);
+	let searchTargetIndex = $state<number | null>(null);
 
 	let productComponents = $state<(MultiProductEntry | null)[]>([]);
 
@@ -109,6 +114,19 @@
 		goto(resolveRoute('/profile'));
 	}
 
+	function openProductSearch(index: number) {
+		searchTargetIndex = index;
+		showProductSearch = true;
+	}
+
+	function handleProductSelect(selectedProduct: Product) {
+		if (searchTargetIndex !== null) {
+			products[searchTargetIndex] = selectedProduct;
+			comparison = null;
+			searchTargetIndex = null;
+		}
+	}
+
 	let validProductCount = $derived(products.filter((p) => p !== null).length);
 </script>
 
@@ -140,6 +158,16 @@
 		</Dialog.Content>
 	</Dialog.Root>
 {/if}
+
+<!-- Product Search Dialog -->
+<ProductSearch
+	bind:open={showProductSearch}
+	onselect={handleProductSelect}
+	onclose={() => {
+		showProductSearch = false;
+		searchTargetIndex = null;
+	}}
+/>
 
 <div class="container mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
 	<!-- Hero Section -->
@@ -203,6 +231,7 @@
 					onremove={() => removeProduct(index)}
 					onextractfromimages={(images) => handleExtractFromImages(index, images)}
 					onmanualsubmit={(data) => handleManualSubmit(index, data)}
+					onsearchproducts={() => openProductSearch(index)}
 				/>
 			{/each}
 		</div>
