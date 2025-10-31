@@ -1,0 +1,24 @@
+<svg width="200" height="200" viewBox="55 20 90 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Stylized S with leaf integration -->
+  <!-- Main S shape in sage green -->
+  <path d="M 140 50 C 140 35 125 25 105 25 C 85 25 70 35 70 50 C 70 60 75 68 85 73 L 115 87 C 125 92 130 100 130 110 C 130 125 115 135 95 135 C 75 135 60 125 60 110" 
+        stroke="#8FA888" 
+        stroke-width="12" 
+        stroke-linecap="round" 
+        fill="none"/>
+  
+  <!-- Leaf shape integrated into the S (top portion) -->
+  <path d="M 105 25 C 105 25 120 30 125 45 C 128 55 125 65 118 72 C 115 75 110 76 107 75 C 105 74 104 72 104 70 C 104 65 107 60 110 55 C 113 50 115 45 113 40 C 111 35 108 30 105 25 Z" 
+        fill="#F5EFE7" 
+        opacity="0.6"/>
+  
+  <!-- Additional leaf accent (bottom portion) -->
+  <path d="M 95 135 C 95 135 80 130 75 115 C 72 105 75 95 82 88 C 85 85 90 84 93 85 C 95 86 96 88 96 90 C 96 95 93 100 90 105 C 87 110 85 115 87 120 C 89 125 92 130 95 135 Z" 
+        fill="#F5EFE7" 
+        opacity="0.6"/>
+  
+  <!-- Flowing central element -->
+  <ellipse cx="100" cy="80" rx="2" ry="3" fill="#8FA888" opacity="0.4"/>
+  <ellipse cx="100" cy="100" rx="2" ry="3" fill="#8FA888" opacity="0.4"/>
+  <ellipse cx="100" cy="120" rx="2" ry="3" fill="#8FA888" opacity="0.4"/>
+</svg>

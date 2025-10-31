@@ -1,4 +1,5 @@
 <script lang="ts">
+	import SkeenLogo from '$lib/assets/skeen.svg';
 	import * as Alert from '$lib/components/ui/alert';
 	import * as Tabs from '$lib/components/ui/tabs';
 	import { Sparkles, AlertCircle } from '@lucide/svelte';
@@ -10,7 +11,7 @@
 	import { historyStore } from '$lib/stores/history.svelte';
 	import type { PageData } from './$types';
 
-	let {data}: { data: PageData } = $props();
+	let { data }: { data: PageData } = $props();
 
 	const aiClient = data.aiClient as BaseAIClient;
 
@@ -41,13 +42,13 @@
 		assessment = null;
 
 		try {
-		product = await aiClient.extractProductInfo(images);
-		activeTab = 'productinfo';
-	} catch (err) {
-		error = err instanceof Error ? err.message : 'Failed to extract product information';
-	} finally {
-		loading = false;
-	}
+			product = await aiClient.extractProductInfo(images);
+			activeTab = 'productinfo';
+		} catch (err) {
+			error = err instanceof Error ? err.message : 'Failed to extract product information';
+		} finally {
+			loading = false;
+		}
 	}
 
 	async function assessProduct() {
@@ -65,25 +66,29 @@
 			if (!product && images.length > 0) {
 				product = await aiClient.extractProductInfo(images);
 			}
-			
+
 			// Now assess the product
 			if (product) {
 				assessment = await aiClient.assessProduct(product);
-				
+
 				// Save to history with deep clone to ensure serializability
 				if (assessment) {
-					const cleanProduct = JSON.parse(JSON.stringify({
-						name: product.name,
-						description: product.description || undefined,
-						ingredients: product.ingredients || undefined
-					}));
-					
-					const cleanAssessment = JSON.parse(JSON.stringify({
-						pros: assessment.pros,
-						cons: assessment.cons,
-						score: assessment.score
-					}));
-					
+					const cleanProduct = JSON.parse(
+						JSON.stringify({
+							name: product.name,
+							description: product.description || undefined,
+							ingredients: product.ingredients || undefined
+						})
+					);
+
+					const cleanAssessment = JSON.parse(
+						JSON.stringify({
+							pros: assessment.pros,
+							cons: assessment.cons,
+							score: assessment.score
+						})
+					);
+
 					await historyStore.add(cleanProduct, cleanAssessment);
 				}
 			}
@@ -94,14 +99,18 @@
 		}
 	}
 
-	async function handleManualSubmit(data: { name: string; description?: string; ingredients: string[] }) {
+	async function handleManualSubmit(data: {
+		name: string;
+		description?: string;
+		ingredients: string[];
+	}) {
 		product = {
 			name: data.name,
 			description: data.description,
 			ingredients: data.ingredients
 		};
 		error = null;
-		
+
 		// Immediately assess the product
 		await assessProduct();
 	}
@@ -117,23 +126,24 @@
 
 <div class="container mx-auto max-w-5xl p-4 sm:p-6 lg:p-8">
 	<!-- Hero Section -->
-	<div class="mb-8 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background p-8 sm:p-10">
-		<div class="flex items-center gap-3 mb-4">
+	<div
+		class="mb-8 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background p-8 sm:p-10"
+	>
+		<div class="mb-4 flex items-center gap-3">
 			<div class="rounded-xl bg-primary/20 p-3">
-				<Sparkles class="h-8 w-8 text-primary" />
+				<img src={SkeenLogo} alt="Skeen Logo" class="h-12 w-12" />
 			</div>
-			<h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
-				Skeen
-			</h1>
+			<h1 class="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">Skeen</h1>
 		</div>
-		<p class="text-lg text-muted-foreground max-w-2xl">
-			Your AI-powered skincare product analyzer. Upload images or enter product details to get instant, science-backed assessments.
+		<p class="max-w-2xl text-lg text-muted-foreground">
+			Your AI-powered skincare product analyzer. Upload images or enter product details to get
+			instant, science-backed assessments.
 		</p>
 	</div>
 
 	<!-- Tabs for Manual Input and Image Upload -->
 	<Tabs.Root bind:value={activeTab} class="mb-8">
-		<Tabs.List class="grid w-full grid-cols-2 p-1 bg-muted/50">
+		<Tabs.List class="grid w-full grid-cols-2 bg-muted/50 p-1">
 			<Tabs.Trigger value="image" class="gap-2">📸 Image Upload</Tabs.Trigger>
 			<Tabs.Trigger value="productinfo" class="gap-2">✍️ Product Info</Tabs.Trigger>
 		</Tabs.List>
