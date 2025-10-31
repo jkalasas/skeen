@@ -38,6 +38,16 @@
 	let showSaveSuccess = $state(false);
 
 	let productEntryComponent = $state<ProductEntry | null>(null);
+	let saveSuccessTimeout: number | undefined = undefined;
+
+	onMount(() => {
+		return () => {
+			// Clear timeout on unmount
+			if (saveSuccessTimeout !== undefined) {
+				clearTimeout(saveSuccessTimeout);
+			}
+		};
+	});
 
 	function handleImagesChange() {
 		product = null;
@@ -151,6 +161,11 @@
 	async function saveProductToCache() {
 		if (!product) return;
 
+		// Clear any existing timeout
+		if (saveSuccessTimeout !== undefined) {
+			clearTimeout(saveSuccessTimeout);
+		}
+
 		try {
 			// Check if product with same name already exists
 			const existing = productsStore.findByName(product.name);
@@ -161,7 +176,7 @@
 
 			await productsStore.add(product);
 			showSaveSuccess = true;
-			setTimeout(() => {
+			saveSuccessTimeout = window.setTimeout(() => {
 				showSaveSuccess = false;
 			}, 3000);
 		} catch (err) {

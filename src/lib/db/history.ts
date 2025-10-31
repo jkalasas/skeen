@@ -10,7 +10,7 @@ export interface HistoryEntry {
 
 const DB_NAME = 'skeenDB';
 const STORE_NAME = 'assessmentHistory';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Increment version to support products store
 
 class HistoryDB {
 	private db: IDBDatabase | null = null;
