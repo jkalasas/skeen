@@ -13,8 +13,28 @@ const firebaseConfig = {
 let app: FirebaseApp | null = null;
 let ai: AI | null = null;
 
+function validateFirebaseConfig(): void {
+	const requiredFields = [
+		'apiKey',
+		'authDomain',
+		'projectId',
+		'storageBucket',
+		'messagingSenderId',
+		'appId'
+	] as const;
+
+	const missingFields = requiredFields.filter((field) => !firebaseConfig[field]);
+
+	if (missingFields.length > 0) {
+		throw new Error(
+			`Missing required Firebase configuration: ${missingFields.join(', ')}. Please check your environment variables.`
+		);
+	}
+}
+
 export function getFirebaseApp(): FirebaseApp {
 	if (!app) {
+		validateFirebaseConfig();
 		app = initializeApp(firebaseConfig);
 	}
 	return app;

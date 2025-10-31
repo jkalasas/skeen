@@ -16,6 +16,8 @@ import { imageFileToBase64 } from '$lib/image';
 import type { UserProfile } from '$lib/types/profile';
 import { getAIInstance } from '$lib/firebase';
 
+const DEFAULT_MODEL = 'gemini-1.5-flash';
+
 function buildSystemInstruction(userProfile?: UserProfile | null): string {
 	let instruction = 'Provide a detailed assessment of the skincare product.';
 
@@ -152,7 +154,7 @@ export class FirebaseAIClient extends BaseAIClient {
 	private getModel(systemInstruction?: string, responseSchema?: SchemaRequest): GenerativeModel {
 		const ai = getAIInstance();
 		const config: ModelParams = {
-			model: 'gemini-1.5-flash'
+			model: DEFAULT_MODEL
 		};
 
 		if (systemInstruction) {
