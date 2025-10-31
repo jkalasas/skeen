@@ -44,6 +44,22 @@ class ProductsDB {
 					// Create index for lastUsed to enable sorting by recent usage
 					objectStore.createIndex('lastUsed', 'lastUsed', { unique: false });
 				}
+
+				// Also create assessment history store if it doesn't exist
+				// This ensures both stores exist when upgrading to version 2
+				const HISTORY_STORE_NAME = 'assessmentHistory';
+				if (!db.objectStoreNames.contains(HISTORY_STORE_NAME)) {
+					const objectStore = db.createObjectStore(HISTORY_STORE_NAME, {
+						keyPath: 'id',
+						autoIncrement: true
+					});
+
+					// Create index for timestamp to enable sorting
+					objectStore.createIndex('timestamp', 'timestamp', { unique: false });
+
+					// Create index for product name to enable searching
+					objectStore.createIndex('productName', 'product.name', { unique: false });
+				}
 			};
 		});
 	}

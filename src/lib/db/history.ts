@@ -42,6 +42,25 @@ class HistoryDB {
 					// Create index for product name to enable searching
 					objectStore.createIndex('productName', 'product.name', { unique: false });
 				}
+
+				// Also create products store if it doesn't exist
+				// This ensures both stores exist when upgrading to version 2
+				const PRODUCTS_STORE_NAME = 'products';
+				if (!db.objectStoreNames.contains(PRODUCTS_STORE_NAME)) {
+					const objectStore = db.createObjectStore(PRODUCTS_STORE_NAME, {
+						keyPath: 'id',
+						autoIncrement: true
+					});
+
+					// Create index for timestamp to enable sorting
+					objectStore.createIndex('timestamp', 'timestamp', { unique: false });
+
+					// Create index for product name to enable searching
+					objectStore.createIndex('name', 'name', { unique: false });
+
+					// Create index for lastUsed to enable sorting by recent usage
+					objectStore.createIndex('lastUsed', 'lastUsed', { unique: false });
+				}
 			};
 		});
 	}
