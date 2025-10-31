@@ -15,16 +15,12 @@ export interface ProductAssessment {
 export interface ProductComparison {
 	areSimilar: boolean;
 	reason?: string;
-	product1Analysis?: {
+	productAnalyses?: {
+		name: string;
 		strengths: string[];
 		weaknesses: string[];
 		score: number;
-	};
-	product2Analysis?: {
-		strengths: string[];
-		weaknesses: string[];
-		score: number;
-	};
+	}[];
 	recommendation?: string;
 }
 
@@ -47,8 +43,7 @@ export abstract class BaseAIClient {
 	): Promise<ProductAssessment>;
 	abstract extractProductInfo(images: File[]): Promise<Product>;
 	abstract compareProducts(
-		product1: Product,
-		product2: Product,
+		products: Product[],
 		userProfile?: UserProfile | null
 	): Promise<ProductComparison>;
 	abstract assessProductCombination(

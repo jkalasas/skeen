@@ -14,11 +14,9 @@
 
 	interface Props {
 		comparison: ProductComparison;
-		product1Name: string;
-		product2Name: string;
 	}
 
-	let { comparison, product1Name, product2Name }: Props = $props();
+	let { comparison }: Props = $props();
 </script>
 
 {#if !comparison.areSimilar}
@@ -46,106 +44,67 @@
 				</div>
 			{/if}
 
-			<!-- Products Side by Side -->
-			<div class="grid gap-6 md:grid-cols-2">
-				<!-- Product 1 -->
-				{#if comparison.product1Analysis}
-					<div class="space-y-4 rounded-xl border-2 bg-background/50 p-5">
-						<div class="flex items-center justify-between">
-							<h3 class="text-lg font-bold">{product1Name}</h3>
-							<Badge variant="secondary" class="text-lg font-bold">
-								{comparison.product1Analysis.score.toFixed(1)}/10
-							</Badge>
-						</div>
+			<!-- Products Grid -->
+			<div
+				class="grid gap-6 {comparison.productAnalyses && comparison.productAnalyses.length <= 2
+					? 'md:grid-cols-2'
+					: comparison.productAnalyses && comparison.productAnalyses.length === 3
+						? 'md:grid-cols-3'
+						: 'md:grid-cols-2 lg:grid-cols-3'}"
+			>
+				{#if comparison.productAnalyses}
+					{#each comparison.productAnalyses as analysis, i (i)}
+						<div class="space-y-4 rounded-xl border-2 bg-background/50 p-5">
+							<div class="flex items-center justify-between">
+								<h3 class="text-lg font-bold">{analysis.name}</h3>
+								<Badge variant="secondary" class="text-lg font-bold">
+									{analysis.score.toFixed(1)}/10
+								</Badge>
+							</div>
 
-						<!-- Strengths -->
-						<div
-							class="space-y-3 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950/20"
-						>
-							<h4 class="flex items-center gap-2 font-semibold text-green-700 dark:text-green-400">
-								<TrendingUp class="h-4 w-4" />
-								Strengths
-							</h4>
-							<ul class="space-y-2">
-								{#each comparison.product1Analysis.strengths as strength, i (i)}
-									<li class="flex items-start gap-2">
-										<CheckCircle2
-											class="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600 dark:text-green-400"
-										/>
-										<span class="text-sm leading-relaxed">{strength}</span>
-									</li>
-								{/each}
-							</ul>
-						</div>
+							<!-- Strengths -->
+							<div
+								class="space-y-3 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950/20"
+							>
+								<h4
+									class="flex items-center gap-2 font-semibold text-green-700 dark:text-green-400"
+								>
+									<TrendingUp class="h-4 w-4" />
+									Strengths
+								</h4>
+								<ul class="space-y-2">
+									{#each analysis.strengths as strength, j (j)}
+										<li class="flex items-start gap-2">
+											<CheckCircle2
+												class="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600 dark:text-green-400"
+											/>
+											<span class="text-sm leading-relaxed">{strength}</span>
+										</li>
+									{/each}
+								</ul>
+							</div>
 
-						<!-- Weaknesses -->
-						<div
-							class="space-y-3 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950/20"
-						>
-							<h4 class="flex items-center gap-2 font-semibold text-red-700 dark:text-red-400">
-								<TrendingDown class="h-4 w-4" />
-								Weaknesses
-							</h4>
-							<ul class="space-y-2">
-								{#each comparison.product1Analysis.weaknesses as weakness, i (i)}
-									<li class="flex items-start gap-2">
-										<XCircle class="mt-0.5 h-4 w-4 flex-shrink-0 text-red-600 dark:text-red-400" />
-										<span class="text-sm leading-relaxed">{weakness}</span>
-									</li>
-								{/each}
-							</ul>
+							<!-- Weaknesses -->
+							<div
+								class="space-y-3 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950/20"
+							>
+								<h4 class="flex items-center gap-2 font-semibold text-red-700 dark:text-red-400">
+									<TrendingDown class="h-4 w-4" />
+									Weaknesses
+								</h4>
+								<ul class="space-y-2">
+									{#each analysis.weaknesses as weakness, j (j)}
+										<li class="flex items-start gap-2">
+											<XCircle
+												class="mt-0.5 h-4 w-4 flex-shrink-0 text-red-600 dark:text-red-400"
+											/>
+											<span class="text-sm leading-relaxed">{weakness}</span>
+										</li>
+									{/each}
+								</ul>
+							</div>
 						</div>
-					</div>
-				{/if}
-
-				<!-- Product 2 -->
-				{#if comparison.product2Analysis}
-					<div class="space-y-4 rounded-xl border-2 bg-background/50 p-5">
-						<div class="flex items-center justify-between">
-							<h3 class="text-lg font-bold">{product2Name}</h3>
-							<Badge variant="secondary" class="text-lg font-bold">
-								{comparison.product2Analysis.score.toFixed(1)}/10
-							</Badge>
-						</div>
-
-						<!-- Strengths -->
-						<div
-							class="space-y-3 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950/20"
-						>
-							<h4 class="flex items-center gap-2 font-semibold text-green-700 dark:text-green-400">
-								<TrendingUp class="h-4 w-4" />
-								Strengths
-							</h4>
-							<ul class="space-y-2">
-								{#each comparison.product2Analysis.strengths as strength, i (i)}
-									<li class="flex items-start gap-2">
-										<CheckCircle2
-											class="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600 dark:text-green-400"
-										/>
-										<span class="text-sm leading-relaxed">{strength}</span>
-									</li>
-								{/each}
-							</ul>
-						</div>
-
-						<!-- Weaknesses -->
-						<div
-							class="space-y-3 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950/20"
-						>
-							<h4 class="flex items-center gap-2 font-semibold text-red-700 dark:text-red-400">
-								<TrendingDown class="h-4 w-4" />
-								Weaknesses
-							</h4>
-							<ul class="space-y-2">
-								{#each comparison.product2Analysis.weaknesses as weakness, i (i)}
-									<li class="flex items-start gap-2">
-										<XCircle class="mt-0.5 h-4 w-4 flex-shrink-0 text-red-600 dark:text-red-400" />
-										<span class="text-sm leading-relaxed">{weakness}</span>
-									</li>
-								{/each}
-							</ul>
-						</div>
-					</div>
+					{/each}
 				{/if}
 			</div>
 		</Card.Content>

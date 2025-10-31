@@ -1,11 +1,10 @@
 <script lang="ts">
 	import * as Alert from '$lib/components/ui/alert';
 	import * as Dialog from '$lib/components/ui/dialog';
-	import * as Card from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
-	import { Heart, AlertCircle, User, Info, Plus, Trash2 } from '@lucide/svelte';
+	import { Heart, AlertCircle, User, Info, Plus } from '@lucide/svelte';
 	import type { BaseAIClient, Product, ProductCombination } from '$lib/ai/base';
-	import ProductEntry from '$lib/components/custom/product-entry.svelte';
+	import MultiProductEntry from '$lib/components/custom/multi-product-entry.svelte';
 	import ProductInfo from '$lib/components/custom/product-info.svelte';
 	import CombinationResults from '$lib/components/custom/combination-results.svelte';
 	import { profileStore } from '$lib/stores/profile.svelte';
@@ -13,10 +12,12 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolveRoute } from '$app/paths';
+	import { PUBLIC_MAX_MULTI_COUNT } from '$env/static/public';
 
 	let { data }: { data: PageData } = $props();
 
 	const aiClient = data.aiClient as BaseAIClient;
+	const maxProducts = PUBLIC_MAX_MULTI_COUNT ? parseInt(PUBLIC_MAX_MULTI_COUNT) : 5;
 
 	onMount(() => {
 		profileStore.load();
@@ -24,64 +25,56 @@
 
 	let loading = $state(false);
 	let error = $state<string | null>(null);
-	let products = $state<Product[]>([]);
+	let products = $state<(Product | null)[]>([null, null]);
 	let combination = $state<ProductCombination | null>(null);
 	let showProfilePrompt = $state(false);
-	let editingIndex = $state<number | null>(null);
 
-	let productEntryComponent = $state<ProductEntry | null>(null);
+	let productComponents = $state<(MultiProductEntry | null)[]>([]);
 
-	function startAddingProduct() {
-		editingIndex = products.length;
-		productEntryComponent?.reset();
+	function addProduct() {
+		if (products.length < maxProducts) {
+			products = [...products, null];
+		}
 	}
 
-	function handleProductSubmit(data: {
-		name: string;
-		description?: string;
-		ingredients: string[];
-	}) {
-		const newProduct: Product = {
+	function removeProduct(index: number) {
+		if (products.length > 2) {
+			products = products.filter((_, i) => i !== index);
+			combination = null;
+		}
+	}
+
+	async function handleExtractFromImages(index: number, images: File[]) {
+		loading = true;
+		error = null;
+
+		try {
+			const extractedProduct = await aiClient.extractProductInfo(images);
+			products[index] = extractedProduct;
+		} catch (err) {
+			error = err instanceof Error ? err.message : 'Failed to extract product information';
+		} finally {
+			loading = false;
+		}
+	}
+
+	function handleManualSubmit(
+		index: number,
+		data: { name: string; description?: string; ingredients: string[] }
+	) {
+		products[index] = {
 			name: data.name,
 			description: data.description,
 			ingredients: data.ingredients
 		};
-
-		if (editingIndex !== null && editingIndex < products.length) {
-			// Edit existing product
-			products[editingIndex] = newProduct;
-		} else {
-			// Add new product
-			products = [...products, newProduct];
-		}
-
-		editingIndex = null;
 		error = null;
 		combination = null;
-		productEntryComponent?.reset();
-	}
-
-	function editProduct(index: number) {
-		editingIndex = index;
-		// The component will re-render with the product data
-	}
-
-	function removeProduct(index: number) {
-		products = products.filter((_, i) => i !== index);
-		combination = null;
-		if (editingIndex === index) {
-			editingIndex = null;
-			productEntryComponent?.reset();
-		}
-	}
-
-	function cancelEdit() {
-		editingIndex = null;
-		productEntryComponent?.reset();
 	}
 
 	async function assessCombination() {
-		if (products.length < 2) {
+		const validProducts = products.filter((p): p is Product => p !== null);
+
+		if (validProducts.length < 2) {
 			error = 'Please add at least 2 products to assess their combination';
 			return;
 		}
@@ -97,7 +90,7 @@
 		combination = null;
 
 		try {
-			combination = await aiClient.assessProductCombination(products, profileStore.data);
+			combination = await aiClient.assessProductCombination(validProducts, profileStore.data);
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to assess product combination';
 		} finally {
@@ -106,21 +99,17 @@
 	}
 
 	function reset() {
-		products = [];
+		products = [null, null];
 		combination = null;
 		error = null;
-		editingIndex = null;
-		productEntryComponent?.reset();
+		productComponents.forEach((c) => c?.reset());
 	}
 
 	function goToProfile() {
 		goto(resolveRoute('/profile'));
 	}
 
-	// Get current editing product if any
-	let currentProduct = $derived(
-		editingIndex !== null && editingIndex < products.length ? products[editingIndex] : null
-	);
+	let validProductCount = $derived(products.filter((p) => p !== null).length);
 </script>
 
 <!-- Profile Prompt Dialog -->
@@ -152,7 +141,7 @@
 	</Dialog.Root>
 {/if}
 
-<div class="container mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
+<div class="container mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
 	<!-- Hero Section -->
 	<div
 		class="mb-8 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background p-8 sm:p-10"
@@ -164,7 +153,8 @@
 			<h1 class="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">Product Companion</h1>
 		</div>
 		<p class="max-w-2xl text-lg text-muted-foreground">
-			Assess how well multiple products work together in your skincare routine.
+			Assess how well 2-{maxProducts} products work together in your skincare routine. Upload images
+			or enter details manually.
 		</p>
 	</div>
 
@@ -185,77 +175,42 @@
 		</Alert.Root>
 	{/if}
 
-	<!-- Product List -->
-	{#if products.length > 0}
-		<div class="mb-6">
-			<h2 class="mb-4 text-xl font-semibold">Your Products ({products.length})</h2>
-			<div class="grid gap-4 md:grid-cols-2">
-				{#each products as product, index (index)}
-					<Card.Root class="border-2">
-						<Card.Header>
-							<Card.Title class="flex items-center justify-between">
-								<span>{product.name}</span>
-								<div class="flex gap-2">
-									<Button
-										variant="ghost"
-										size="sm"
-										onclick={() => editProduct(index)}
-										disabled={loading}
-									>
-										Edit
-									</Button>
-									<Button
-										variant="ghost"
-										size="sm"
-										onclick={() => removeProduct(index)}
-										disabled={loading}
-									>
-										<Trash2 class="h-4 w-4 text-destructive" />
-									</Button>
-								</div>
-							</Card.Title>
-						</Card.Header>
-						{#if product.description}
-							<Card.Content>
-								<p class="text-sm text-muted-foreground">{product.description}</p>
-							</Card.Content>
-						{/if}
-					</Card.Root>
-				{/each}
-			</div>
-		</div>
-	{/if}
-
-	<!-- Product Entry Form -->
-	<div class="mb-8">
-		{#if editingIndex !== null}
-			<h2 class="mb-4 text-xl font-semibold">
-				{editingIndex < products.length ? 'Edit Product' : 'Add Product'}
-			</h2>
-			<ProductEntry
-				bind:this={productEntryComponent}
-				{loading}
-				onsubmit={handleProductSubmit}
-				initialName={currentProduct?.name ?? ''}
-				initialDescription={currentProduct?.description ?? ''}
-				initialIngredients={currentProduct?.ingredients ?? []}
-			/>
-			<div class="mt-4">
-				<Button variant="outline" onclick={cancelEdit}>Cancel</Button>
-			</div>
-		{:else}
-			<Button onclick={startAddingProduct} variant="outline" class="gap-2" disabled={loading}>
+	<!-- Product Entry Forms -->
+	<div class="mb-8 space-y-4">
+		<div class="flex items-center justify-between">
+			<h2 class="text-xl font-semibold">Your Products ({validProductCount}/{products.length})</h2>
+			<Button
+				onclick={addProduct}
+				variant="outline"
+				size="sm"
+				disabled={products.length >= maxProducts || loading}
+				class="gap-2"
+			>
 				<Plus class="h-4 w-4" />
 				Add Product
 			</Button>
-		{/if}
+		</div>
+
+		<div class="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+			{#each products as product, index (index)}
+				<MultiProductEntry
+					bind:this={productComponents[index]}
+					bind:product={products[index]}
+					{index}
+					{loading}
+					onremove={() => removeProduct(index)}
+					onextractfromimages={(images) => handleExtractFromImages(index, images)}
+					onmanualsubmit={(data) => handleManualSubmit(index, data)}
+				/>
+			{/each}
+		</div>
 	</div>
 
 	<!-- Action Buttons -->
 	<div class="mb-8 flex flex-wrap gap-4">
 		<Button
 			onclick={assessCombination}
-			disabled={loading || products.length < 2}
+			disabled={loading || validProductCount < 2}
 			class="gap-2"
 			size="lg"
 		>
@@ -275,12 +230,14 @@
 	{/if}
 
 	<!-- Product Information Grid -->
-	{#if products.length > 0 && combination}
+	{#if combination}
 		<div class="mb-6">
 			<h2 class="mb-4 text-xl font-semibold">Product Details</h2>
 			<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-				{#each products as product (product.name)}
-					<ProductInfo {product} />
+				{#each products as product (product?.name)}
+					{#if product}
+						<ProductInfo {product} />
+					{/if}
 				{/each}
 			</div>
 		</div>

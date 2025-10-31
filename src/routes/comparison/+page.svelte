@@ -2,9 +2,9 @@
 	import * as Alert from '$lib/components/ui/alert';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Button } from '$lib/components/ui/button';
-	import { GitCompare, AlertCircle, User, Info } from '@lucide/svelte';
+	import { GitCompare, AlertCircle, User, Info, Plus } from '@lucide/svelte';
 	import type { BaseAIClient, Product, ProductComparison } from '$lib/ai/base';
-	import ProductEntry from '$lib/components/custom/product-entry.svelte';
+	import MultiProductEntry from '$lib/components/custom/multi-product-entry.svelte';
 	import ProductInfo from '$lib/components/custom/product-info.svelte';
 	import ComparisonResults from '$lib/components/custom/comparison-results.svelte';
 	import { profileStore } from '$lib/stores/profile.svelte';
@@ -12,10 +12,12 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolveRoute } from '$app/paths';
+	import { PUBLIC_MAX_MULTI_COUNT } from '$env/static/public';
 
 	let { data }: { data: PageData } = $props();
 
 	const aiClient = data.aiClient as BaseAIClient;
+	const maxProducts = PUBLIC_MAX_MULTI_COUNT ? parseInt(PUBLIC_MAX_MULTI_COUNT) : 5;
 
 	onMount(() => {
 		profileStore.load();
@@ -23,34 +25,44 @@
 
 	let loading = $state(false);
 	let error = $state<string | null>(null);
-	let product1 = $state<Product | null>(null);
-	let product2 = $state<Product | null>(null);
+	let products = $state<(Product | null)[]>([null, null]);
 	let comparison = $state<ProductComparison | null>(null);
 	let showProfilePrompt = $state(false);
 
-	let product1EntryComponent = $state<ProductEntry | null>(null);
-	let product2EntryComponent = $state<ProductEntry | null>(null);
+	let productComponents = $state<(MultiProductEntry | null)[]>([]);
 
-	async function handleProduct1Submit(data: {
-		name: string;
-		description?: string;
-		ingredients: string[];
-	}) {
-		product1 = {
-			name: data.name,
-			description: data.description,
-			ingredients: data.ingredients
-		};
-		error = null;
-		comparison = null;
+	function addProduct() {
+		if (products.length < maxProducts) {
+			products = [...products, null];
+		}
 	}
 
-	async function handleProduct2Submit(data: {
-		name: string;
-		description?: string;
-		ingredients: string[];
-	}) {
-		product2 = {
+	function removeProduct(index: number) {
+		if (products.length > 2) {
+			products = products.filter((_, i) => i !== index);
+			comparison = null;
+		}
+	}
+
+	async function handleExtractFromImages(index: number, images: File[]) {
+		loading = true;
+		error = null;
+
+		try {
+			const extractedProduct = await aiClient.extractProductInfo(images);
+			products[index] = extractedProduct;
+		} catch (err) {
+			error = err instanceof Error ? err.message : 'Failed to extract product information';
+		} finally {
+			loading = false;
+		}
+	}
+
+	function handleManualSubmit(
+		index: number,
+		data: { name: string; description?: string; ingredients: string[] }
+	) {
+		products[index] = {
 			name: data.name,
 			description: data.description,
 			ingredients: data.ingredients
@@ -60,8 +72,10 @@
 	}
 
 	async function compareProducts() {
-		if (!product1 || !product2) {
-			error = 'Please enter both products before comparing';
+		const validProducts = products.filter((p): p is Product => p !== null);
+
+		if (validProducts.length < 2) {
+			error = 'Please add at least 2 products before comparing';
 			return;
 		}
 
@@ -76,7 +90,7 @@
 		comparison = null;
 
 		try {
-			comparison = await aiClient.compareProducts(product1, product2, profileStore.data);
+			comparison = await aiClient.compareProducts(validProducts, profileStore.data);
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to compare products';
 		} finally {
@@ -85,17 +99,17 @@
 	}
 
 	function reset() {
-		product1 = null;
-		product2 = null;
+		products = [null, null];
 		comparison = null;
 		error = null;
-		product1EntryComponent?.reset();
-		product2EntryComponent?.reset();
+		productComponents.forEach((c) => c?.reset());
 	}
 
 	function goToProfile() {
 		goto(resolveRoute('/profile'));
 	}
+
+	let validProductCount = $derived(products.filter((p) => p !== null).length);
 </script>
 
 <!-- Profile Prompt Dialog -->
@@ -127,7 +141,7 @@
 	</Dialog.Root>
 {/if}
 
-<div class="container mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
+<div class="container mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
 	<!-- Hero Section -->
 	<div
 		class="mb-8 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background p-8 sm:p-10"
@@ -139,7 +153,8 @@
 			<h1 class="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">Product Comparison</h1>
 		</div>
 		<p class="max-w-2xl text-lg text-muted-foreground">
-			Compare two similar skincare products side-by-side to find the best match for your skin.
+			Compare 2-{maxProducts} similar skincare products side-by-side to find the best match for your
+			skin. Upload images or enter details manually.
 		</p>
 	</div>
 
@@ -161,28 +176,35 @@
 	{/if}
 
 	<!-- Product Entry Forms -->
-	<div class="mb-8 grid gap-6 lg:grid-cols-2">
-		<div>
-			<h2 class="mb-4 text-xl font-semibold">Product 1</h2>
-			<ProductEntry
-				bind:this={product1EntryComponent}
-				{loading}
-				onsubmit={handleProduct1Submit}
-				initialName={product1?.name ?? ''}
-				initialDescription={product1?.description ?? ''}
-				initialIngredients={product1?.ingredients ?? []}
-			/>
+	<div class="mb-8 space-y-4">
+		<div class="flex items-center justify-between">
+			<h2 class="text-xl font-semibold">
+				Products to Compare ({validProductCount}/{products.length})
+			</h2>
+			<Button
+				onclick={addProduct}
+				variant="outline"
+				size="sm"
+				disabled={products.length >= maxProducts || loading}
+				class="gap-2"
+			>
+				<Plus class="h-4 w-4" />
+				Add Product
+			</Button>
 		</div>
-		<div>
-			<h2 class="mb-4 text-xl font-semibold">Product 2</h2>
-			<ProductEntry
-				bind:this={product2EntryComponent}
-				{loading}
-				onsubmit={handleProduct2Submit}
-				initialName={product2?.name ?? ''}
-				initialDescription={product2?.description ?? ''}
-				initialIngredients={product2?.ingredients ?? []}
-			/>
+
+		<div class="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+			{#each products as product, index (index)}
+				<MultiProductEntry
+					bind:this={productComponents[index]}
+					bind:product={products[index]}
+					{index}
+					{loading}
+					onremove={() => removeProduct(index)}
+					onextractfromimages={(images) => handleExtractFromImages(index, images)}
+					onmanualsubmit={(data) => handleManualSubmit(index, data)}
+				/>
+			{/each}
 		</div>
 	</div>
 
@@ -190,14 +212,14 @@
 	<div class="mb-8 flex flex-wrap gap-4">
 		<Button
 			onclick={compareProducts}
-			disabled={loading || !product1 || !product2}
+			disabled={loading || validProductCount < 2}
 			class="gap-2"
 			size="lg"
 		>
 			<GitCompare class="h-5 w-5" />
 			{loading ? 'Comparing...' : 'Compare Products'}
 		</Button>
-		<Button onclick={reset} variant="outline" size="lg" disabled={loading}>Reset</Button>
+		<Button onclick={reset} variant="outline" size="lg" disabled={loading}>Reset All</Button>
 	</div>
 
 	<!-- Error Display -->
@@ -210,19 +232,21 @@
 	{/if}
 
 	<!-- Product Information -->
-	{#if product1 && product2 && comparison}
-		<div class="mb-6 grid gap-6 lg:grid-cols-2">
-			<ProductInfo product={product1} />
-			<ProductInfo product={product2} />
+	{#if comparison}
+		<div class="mb-6">
+			<h2 class="mb-4 text-xl font-semibold">Product Details</h2>
+			<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+				{#each products as product (product?.name)}
+					{#if product}
+						<ProductInfo {product} />
+					{/if}
+				{/each}
+			</div>
 		</div>
 	{/if}
 
 	<!-- Comparison Results -->
 	{#if comparison}
-		<ComparisonResults
-			{comparison}
-			product1Name={product1?.name ?? 'Product 1'}
-			product2Name={product2?.name ?? 'Product 2'}
-		/>
+		<ComparisonResults {comparison} />
 	{/if}
 </div>

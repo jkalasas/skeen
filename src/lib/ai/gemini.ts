@@ -95,41 +95,32 @@ const COMPARE_PRODUCTS_SCHEMA = {
 			type: Type.STRING,
 			description: 'Explanation of similarity or why they cannot be compared'
 		},
-		product1Analysis: {
-			type: Type.OBJECT,
-			properties: {
-				strengths: {
-					type: Type.ARRAY,
-					items: { type: Type.STRING }
-				},
-				weaknesses: {
-					type: Type.ARRAY,
-					items: { type: Type.STRING }
-				},
-				score: {
-					type: Type.NUMBER
-				}
-			}
-		},
-		product2Analysis: {
-			type: Type.OBJECT,
-			properties: {
-				strengths: {
-					type: Type.ARRAY,
-					items: { type: Type.STRING }
-				},
-				weaknesses: {
-					type: Type.ARRAY,
-					items: { type: Type.STRING }
-				},
-				score: {
-					type: Type.NUMBER
+		productAnalyses: {
+			type: Type.ARRAY,
+			items: {
+				type: Type.OBJECT,
+				properties: {
+					name: {
+						type: Type.STRING,
+						description: 'Product name'
+					},
+					strengths: {
+						type: Type.ARRAY,
+						items: { type: Type.STRING }
+					},
+					weaknesses: {
+						type: Type.ARRAY,
+						items: { type: Type.STRING }
+					},
+					score: {
+						type: Type.NUMBER
+					}
 				}
 			}
 		},
 		recommendation: {
 			type: Type.STRING,
-			description: 'Which product is recommended and why'
+			description: 'Which product(s) are recommended and why'
 		}
 	}
 };
@@ -246,13 +237,12 @@ export class GeminiAIClient extends BaseAIClient {
 	}
 
 	async compareProducts(
-		product1: Product,
-		product2: Product,
+		products: Product[],
 		userProfile?: UserProfile | null
 	): Promise<ProductComparison> {
-		let systemInstruction = `Compare these two skincare products. First determine if they are similar enough to compare (e.g., both are moisturizers, both are cleansers, etc.). 
+		let systemInstruction = `Compare these ${products.length} skincare products. First determine if they are similar enough to compare (e.g., all are moisturizers, all are cleansers, etc.). 
 If they are not similar (e.g., comparing a lotion to a scrub), set areSimilar to false and explain why they cannot be compared.
-If they are similar, provide a detailed comparison including strengths, weaknesses, scores, and a recommendation.`;
+If they are similar, provide a detailed comparison including strengths, weaknesses, scores for each product, and a recommendation.`;
 
 		if (userProfile) {
 			systemInstruction += `\n\nConsider the following user profile when making your comparison:
@@ -268,7 +258,7 @@ If they are similar, provide a detailed comparison including strengths, weakness
 
 		const response = await this.client.models.generateContent({
 			model: 'gemini-flash-lite-latest',
-			contents: this.buildContent({ product1, product2 }),
+			contents: this.buildContent({ products }),
 			config: {
 				...BASE_CONFIG,
 				systemInstruction,
