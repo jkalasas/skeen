@@ -1,9 +1,15 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { productsStore } from '$lib/stores/products.svelte';
+	import type { StoredProduct } from '$lib/db/products';
+	import type { Product } from '$lib/ai/base';
 	import ProductInfo from '$lib/components/custom/product-info.svelte';
+	import ImageUpload from '$lib/components/custom/image-upload.svelte';
+	import ProductEntry from '$lib/components/custom/product-entry.svelte';
 	import * as Alert from '$lib/components/ui/alert';
 	import * as Card from '$lib/components/ui/card';
+	import * as Dialog from '$lib/components/ui/dialog';
+	import * as Tabs from '$lib/components/ui/tabs';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import {
@@ -14,12 +20,31 @@
 		ArrowLeft,
 		ChevronLeft,
 		ChevronRight,
-		Calendar
+		Calendar,
+		Plus,
+		Edit,
+		Sparkles,
+		Info
 	} from '@lucide/svelte';
+	import type { PageData } from './$types';
+
+	let { data }: { data: PageData } = $props();
+	const aiClient = data.aiClient;
 
 	let searchQuery = $state('');
 	let currentPage = $state(1);
 	const itemsPerPage = 12;
+
+	// Add/Edit dialog state
+	let showAddEditDialog = $state(false);
+	let editingProduct = $state<StoredProduct | null>(null);
+	let dialogActiveTab = $state('image');
+	let dialogImages = $state<File[]>([]);
+	let dialogLoading = $state(false);
+	let dialogError = $state<string | null>(null);
+	let extractedProduct = $state<Product | null>(null);
+
+	let productEntryComponent = $state<ProductEntry | null>(null);
 
 	// Computed values using $derived
 	const filteredItems = $derived(
@@ -81,6 +106,108 @@
 	function goBack() {
 		window.history.back();
 	}
+
+	// Add/Edit dialog functions
+	function openAddDialog() {
+		editingProduct = null;
+		extractedProduct = null;
+		dialogImages = [];
+		dialogError = null;
+		dialogActiveTab = 'image';
+		showAddEditDialog = true;
+	}
+
+	function openEditDialog(product: StoredProduct) {
+		editingProduct = product;
+		extractedProduct = {
+			name: product.name,
+			description: product.description,
+			ingredients: product.ingredients
+		};
+		dialogImages = [];
+		dialogError = null;
+		dialogActiveTab = 'manual';
+		showAddEditDialog = true;
+	}
+
+	function closeDialog() {
+		showAddEditDialog = false;
+		editingProduct = null;
+		extractedProduct = null;
+		dialogImages = [];
+		dialogError = null;
+		productEntryComponent?.reset();
+	}
+
+	function handleDialogImagesChange() {
+		extractedProduct = null;
+		dialogError = null;
+	}
+
+	async function handleExtractProduct() {
+		if (dialogImages.length === 0) {
+			dialogError = 'Please select at least one image';
+			return;
+		}
+
+		if (!aiClient) {
+			dialogError = 'AI client not available';
+			return;
+		}
+
+		dialogLoading = true;
+		dialogError = null;
+
+		try {
+			const product = await aiClient.extractProductInfo(dialogImages);
+			extractedProduct = product;
+			dialogActiveTab = 'manual'; // Switch to manual tab to show extracted info
+		} catch (err) {
+			dialogError = err instanceof Error ? err.message : 'Failed to extract product information';
+		} finally {
+			dialogLoading = false;
+		}
+	}
+
+	async function handleManualSubmit(data: {
+		name: string;
+		description?: string;
+		ingredients: string[];
+	}) {
+		dialogLoading = true;
+		dialogError = null;
+
+		try {
+			if (editingProduct) {
+				// Update existing product
+				await productsStore.update({
+					...editingProduct,
+					name: data.name,
+					description: data.description,
+					ingredients: data.ingredients
+				});
+			} else {
+				// Add new product
+				await productsStore.add({
+					name: data.name,
+					description: data.description,
+					ingredients: data.ingredients
+				});
+			}
+			closeDialog();
+		} catch (err) {
+			dialogError = err instanceof Error ? err.message : 'Failed to save product';
+		} finally {
+			dialogLoading = false;
+		}
+	}
+
+	function handleDialogReset() {
+		dialogImages = [];
+		extractedProduct = null;
+		dialogError = null;
+		productEntryComponent?.reset();
+	}
 </script>
 
 <svelte:head>
@@ -122,12 +249,19 @@
 			/>
 		</div>
 
-		{#if productsStore.items.length > 0}
-			<Button variant="destructive" onclick={handleClearAll} class="gap-2">
-				<Trash2 class="h-4 w-4" />
-				Clear All
+		<div class="flex gap-2">
+			<Button onclick={openAddDialog} class="gap-2">
+				<Plus class="h-4 w-4" />
+				Add Product
 			</Button>
-		{/if}
+
+			{#if productsStore.items.length > 0}
+				<Button variant="destructive" onclick={handleClearAll} class="gap-2">
+					<Trash2 class="h-4 w-4" />
+					Clear All
+				</Button>
+			{/if}
+		</div>
 	</div>
 
 	<!-- Error Display -->
@@ -177,14 +311,24 @@
 					<Card.Header>
 						<div class="flex items-start justify-between gap-2">
 							<Card.Title class="line-clamp-2 text-base">{product.name}</Card.Title>
-							<Button
-								variant="ghost"
-								size="sm"
-								onclick={() => handleDelete(product.id!)}
-								class="h-8 w-8 shrink-0 p-0 text-destructive hover:bg-destructive/10"
-							>
-								<Trash2 class="h-4 w-4" />
-							</Button>
+							<div class="flex shrink-0 gap-1">
+								<Button
+									variant="ghost"
+									size="sm"
+									onclick={() => openEditDialog(product)}
+									class="h-8 w-8 p-0 hover:bg-accent"
+								>
+									<Edit class="h-4 w-4" />
+								</Button>
+								<Button
+									variant="ghost"
+									size="sm"
+									onclick={() => handleDelete(product.id!)}
+									class="h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
+								>
+									<Trash2 class="h-4 w-4" />
+								</Button>
+							</div>
 						</div>
 					</Card.Header>
 
@@ -273,3 +417,76 @@
 		{/if}
 	{/if}
 </div>
+
+<!-- Add/Edit Product Dialog -->
+<Dialog.Root bind:open={showAddEditDialog}>
+	<Dialog.Content class="flex max-h-[90vh] max-w-4xl flex-col">
+		<Dialog.Header>
+			<Dialog.Title class="flex items-center gap-2">
+				<Sparkles class="h-5 w-5" />
+				{editingProduct ? 'Edit Product' : 'Add New Product'}
+			</Dialog.Title>
+			<Dialog.Description>
+				{editingProduct
+					? 'Update product information using image extraction or manual entry'
+					: 'Extract product information from images or enter details manually'}
+			</Dialog.Description>
+		</Dialog.Header>
+
+		<div class="flex-1 overflow-y-auto">
+			<!-- Error Display -->
+			{#if dialogError}
+				<Alert.Root variant="destructive" class="mb-4">
+					<AlertCircle class="h-4 w-4" />
+					<Alert.Title>Error</Alert.Title>
+					<Alert.Description>{dialogError}</Alert.Description>
+				</Alert.Root>
+			{/if}
+
+			<Tabs.Root bind:value={dialogActiveTab}>
+				<Tabs.List class="grid w-full grid-cols-2">
+					<Tabs.Trigger value="image">📸 Image Upload</Tabs.Trigger>
+					<Tabs.Trigger value="manual">✍️ Product Info</Tabs.Trigger>
+				</Tabs.List>
+
+				<Tabs.Content value="image" class="mt-4">
+					<ImageUpload
+						bind:images={dialogImages}
+						loading={dialogLoading}
+						onimageschange={handleDialogImagesChange}
+						onextract={handleExtractProduct}
+						onassess={() => {}}
+						onreset={handleDialogReset}
+					/>
+
+					{#if extractedProduct}
+						<div class="mt-4">
+							<Alert.Root>
+								<Info class="h-4 w-4" />
+								<Alert.Title>Product Information Extracted</Alert.Title>
+								<Alert.Description>
+									Switch to the "Product Info" tab to review and save the extracted information.
+								</Alert.Description>
+							</Alert.Root>
+						</div>
+					{/if}
+				</Tabs.Content>
+
+				<Tabs.Content value="manual" class="mt-4">
+					<ProductEntry
+						bind:this={productEntryComponent}
+						loading={dialogLoading}
+						initialName={extractedProduct?.name || editingProduct?.name || ''}
+						initialDescription={extractedProduct?.description || editingProduct?.description || ''}
+						initialIngredients={extractedProduct?.ingredients || editingProduct?.ingredients || []}
+						onsubmit={handleManualSubmit}
+					/>
+				</Tabs.Content>
+			</Tabs.Root>
+		</div>
+
+		<Dialog.Footer class="flex-col gap-2 sm:flex-row">
+			<Button variant="outline" onclick={closeDialog}>Cancel</Button>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>
