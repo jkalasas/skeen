@@ -37,15 +37,33 @@ class ProductsStore {
 
 		try {
 			// Sanitize product data for IndexedDB storage
-			// Remove null values and convert to undefined or appropriate defaults
+			// Create a clean object with only serializable values
 			const sanitizedProduct: Omit<StoredProduct, 'id'> = {
-				name: product.name,
-				description: product.description || undefined,
-				ingredients:
-					product.ingredients && product.ingredients.length > 0 ? product.ingredients : undefined,
+				name: String(product.name),
 				timestamp: Date.now(),
 				lastUsed: Date.now()
 			};
+
+			// Only add description if it's a non-empty string
+			if (product.description && typeof product.description === 'string') {
+				sanitizedProduct.description = product.description;
+			}
+
+			// Only add ingredients if it's a non-empty array of strings
+			if (
+				product.ingredients &&
+				Array.isArray(product.ingredients) &&
+				product.ingredients.length > 0
+			) {
+				// Filter out any non-string values and create a new array
+				const validIngredients = product.ingredients
+					.filter((ing) => typeof ing === 'string' && ing.trim().length > 0)
+					.map((ing) => String(ing));
+
+				if (validIngredients.length > 0) {
+					sanitizedProduct.ingredients = validIngredients;
+				}
+			}
 
 			const id = await productsDB.addProduct(sanitizedProduct);
 
@@ -64,12 +82,41 @@ class ProductsStore {
 		this._error = null;
 
 		try {
-			await productsDB.updateProduct(product);
+			// Sanitize product data for IndexedDB storage
+			const sanitizedProduct: StoredProduct = {
+				id: product.id,
+				name: String(product.name),
+				timestamp: product.timestamp,
+				lastUsed: Date.now()
+			};
+
+			// Only add description if it's a non-empty string
+			if (product.description && typeof product.description === 'string') {
+				sanitizedProduct.description = product.description;
+			}
+
+			// Only add ingredients if it's a non-empty array of strings
+			if (
+				product.ingredients &&
+				Array.isArray(product.ingredients) &&
+				product.ingredients.length > 0
+			) {
+				// Filter out any non-string values and create a new array
+				const validIngredients = product.ingredients
+					.filter((ing) => typeof ing === 'string' && ing.trim().length > 0)
+					.map((ing) => String(ing));
+
+				if (validIngredients.length > 0) {
+					sanitizedProduct.ingredients = validIngredients;
+				}
+			}
+
+			await productsDB.updateProduct(sanitizedProduct);
 
 			// Update in the array
 			const index = this.products.findIndex((p) => p.id === product.id);
 			if (index !== -1) {
-				this.products[index] = product;
+				this.products[index] = sanitizedProduct;
 			}
 		} catch (err) {
 			this._error = err instanceof Error ? err.message : 'Failed to update product';
