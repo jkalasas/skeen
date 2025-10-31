@@ -19,7 +19,7 @@ function buildSystemInstruction(userProfile?: UserProfile | null): string {
 - Skin Type: ${userProfile.skinType}
 - Sensitive Skin: ${userProfile.isSensitive ? 'Yes' : 'No'}
 - Age Range: ${userProfile.ageRange}
-- Primary Concern: ${userProfile.primaryConcern}`;
+- Skin Concerns: ${userProfile.skinConcerns.join(', ')}`;
 
 		if (userProfile.sunExposure) {
 			instruction += `\n- Sun Exposure: ${userProfile.sunExposure}`;

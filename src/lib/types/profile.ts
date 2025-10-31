@@ -13,6 +13,6 @@ export interface UserProfile {
 	skinType: SkinType;
 	isSensitive: boolean;
 	ageRange: AgeRange;
-	primaryConcern: SkinConcern;
+	skinConcerns: SkinConcern[]; // Changed from primaryConcern to skinConcerns (array)
 	sunExposure?: SunExposure;
 }

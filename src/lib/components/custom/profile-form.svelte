@@ -33,7 +33,7 @@
 	let skinType = $state<SkinType | null>(initialProfile?.skinType ?? null);
 	let isSensitive = $state<boolean>(initialProfile?.isSensitive ?? false);
 	let ageRange = $state<AgeRange | null>(initialProfile?.ageRange ?? null);
-	let primaryConcern = $state<SkinConcern | null>(initialProfile?.primaryConcern ?? null);
+	let selectedConcerns = $state<SkinConcern[]>(initialProfile?.skinConcerns ?? []);
 	let sunExposure = $state<SunExposure | undefined>(initialProfile?.sunExposure);
 
 	// Skin type options with icons
@@ -85,21 +85,29 @@
 	];
 
 	const canSubmit = $derived(
-		skinType !== null && ageRange !== null && primaryConcern !== null && !loading
+		skinType !== null && ageRange !== null && selectedConcerns.length > 0 && !loading
 	);
 
 	function handleSubmit() {
-		if (!skinType || !ageRange || !primaryConcern) return;
+		if (!skinType || !ageRange || selectedConcerns.length === 0) return;
 
 		const profile: UserProfile = {
 			skinType,
 			isSensitive,
 			ageRange,
-			primaryConcern,
+			skinConcerns: selectedConcerns,
 			sunExposure
 		};
 
 		onsubmit(profile);
+	}
+
+	function toggleConcern(concern: SkinConcern) {
+		if (selectedConcerns.includes(concern)) {
+			selectedConcerns = selectedConcerns.filter((c) => c !== concern);
+		} else {
+			selectedConcerns = [...selectedConcerns, concern];
+		}
 	}
 </script>
 
@@ -195,33 +203,30 @@
 				</select>
 			</div>
 
-			<!-- 4. Primary Skin Concern (Required) -->
+			<!-- 4. Skin Concerns (Required - Multiple Selection) -->
 			<div class="space-y-3">
 				<Label class="flex items-center gap-2 text-sm font-semibold">
 					<Target class="h-4 w-4" />
-					Primary Skin Concern <span class="text-destructive">*</span>
+					Skin Concerns <span class="text-destructive">*</span>
+					<span class="text-xs font-normal text-muted-foreground">(Select all that apply)</span>
 				</Label>
 				<div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
 					{#each skinConcerns as concern (concern.value)}
 						{@const Icon = concern.icon}
+						{@const isSelected = selectedConcerns.includes(concern.value)}
 						<button
 							type="button"
-							onclick={() => (primaryConcern = concern.value)}
-							class="relative flex flex-col items-center gap-2 rounded-lg border-2 p-3 transition-all hover:border-primary/50 hover:bg-primary/5 {primaryConcern ===
-							concern.value
+							onclick={() => toggleConcern(concern.value)}
+							class="relative flex flex-col items-center gap-2 rounded-lg border-2 p-3 transition-all hover:border-primary/50 hover:bg-primary/5 {isSelected
 								? 'border-primary bg-primary/10'
 								: 'border-border'}"
 						>
-							<Icon
-								class="h-6 w-6 {primaryConcern === concern.value
-									? 'text-primary'
-									: 'text-muted-foreground'}"
-							/>
+							<Icon class="h-6 w-6 {isSelected ? 'text-primary' : 'text-muted-foreground'}" />
 							<div class="text-center">
 								<div class="text-xs font-semibold">{concern.label}</div>
 								<div class="mt-0.5 text-[10px] text-muted-foreground">{concern.description}</div>
 							</div>
-							{#if primaryConcern === concern.value}
+							{#if isSelected}
 								<div class="absolute top-2 right-2">
 									<div class="h-2 w-2 rounded-full bg-primary"></div>
 								</div>

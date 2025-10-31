@@ -3,7 +3,7 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Tabs from '$lib/components/ui/tabs';
 	import { Button } from '$lib/components/ui/button';
-	import { Sparkles, AlertCircle, User } from '@lucide/svelte';
+	import { Sparkles, AlertCircle, User, Info } from '@lucide/svelte';
 	import type { BaseAIClient, Product, ProductAssessment } from '$lib/ai/base';
 	import ImageUpload from '$lib/components/custom/image-upload.svelte';
 	import ProductEntry from '$lib/components/custom/product-entry.svelte';
@@ -189,6 +189,23 @@
 			instant, science-backed assessments.
 		</p>
 	</div>
+
+	<!-- Profile Incomplete Banner -->
+	{#if profileStore.initialized && !profileStore.isComplete}
+		<Alert.Root class="mb-6 border-blue-500/50 bg-blue-500/10">
+			<Info class="h-4 w-4 text-blue-600" />
+			<Alert.Title>Complete your profile for personalized assessments</Alert.Title>
+			<Alert.Description class="flex items-center justify-between gap-4">
+				<span>
+					Get tailored skincare recommendations based on your skin type, concerns, and preferences.
+				</span>
+				<Button variant="outline" size="sm" onclick={goToProfile} class="shrink-0 gap-2">
+					<User class="h-3.5 w-3.5" />
+					Complete Profile
+				</Button>
+			</Alert.Description>
+		</Alert.Root>
+	{/if}
 
 	<!-- Tabs for Manual Input and Image Upload -->
 	<Tabs.Root bind:value={activeTab} class="mb-8">
