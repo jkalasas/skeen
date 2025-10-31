@@ -4,26 +4,25 @@ This is a SvelteKit project for a web application called "skeen". Based on the d
 
 ## Technologies
 
-*   **Framework:** SvelteKit
-*   **Language:** TypeScript
-*   **Styling:** Tailwind CSS
-*   **UI Components:** shadcn-svelte
-*   **AI:** Google Gemini (@google/genai)
-*   **Bundler:** Vite
+- **Framework:** SvelteKit
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS
+- **UI Components:** shadcn-svelte
+- **AI:** Google Gemini (@google/genai)
+- **Bundler:** Vite
 
 ## Architecture
 
 The application is structured as a standard static SvelteKit project.
 
-*   `src/routes`: Contains the application's pages and layouts.
-*   `src/lib`: Contains reusable libraries and components.
-*   `src/lib/ai`: Contains the logic for interacting with the Google Gemini AI.
-    *   `base.ts`: Defines the interface for the AI client.
-    *   `gemini.ts`: Implements the AI client using the Gemini API.
-*   `src/lib/components`: Contains reusable components
-    *   `ui`: Contains the UI components from `shadcn-svelte`.
-    *   `custom`: Contains the custom UI components made for this app.
-
+- `src/routes`: Contains the application's pages and layouts.
+- `src/lib`: Contains reusable libraries and components.
+- `src/lib/ai`: Contains the logic for interacting with the Google Gemini AI.
+  - `base.ts`: Defines the interface for the AI client.
+  - `gemini.ts`: Implements the AI client using the Gemini API.
+- `src/lib/components`: Contains reusable components
+  - `ui`: Contains the UI components from `shadcn-svelte`.
+  - `custom`: Contains the custom UI components made for this app.
 
 ## UI Components
 
@@ -64,12 +63,12 @@ bun run preview
 
 The project uses ESLint for linting and Prettier for code formatting.
 
-*   **Lint:** `bun run lint`
-*   **Format:** `bun run format`
+- **Lint:** `bun run lint`
+- **Format:** `bun run format`
 
 ## Type Checking
 
 The project uses TypeScript for static type checking.
 
-*   **Check:** `bun run check`
-*   **Check (watch mode):** `bun run check:watch`
+- **Check:** `bun run check`
+- **Check (watch mode):** `bun run check:watch`

@@ -44,7 +44,7 @@ class HistoryStore {
 			};
 
 			const id = await historyDB.addEntry(entry);
-			
+
 			// Add to the beginning of the array (most recent first)
 			this.entries = [{ ...entry, id }, ...this.entries];
 		} catch (err) {
@@ -59,7 +59,7 @@ class HistoryStore {
 
 		try {
 			await historyDB.deleteEntry(id);
-			this.entries = this.entries.filter(entry => entry.id !== id);
+			this.entries = this.entries.filter((entry) => entry.id !== id);
 		} catch (err) {
 			this._error = err instanceof Error ? err.message : 'Failed to delete entry';
 			console.error('Failed to delete history entry:', err);

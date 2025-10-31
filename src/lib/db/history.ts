@@ -29,16 +29,16 @@ class HistoryDB {
 
 			request.onupgradeneeded = (event) => {
 				const db = (event.target as IDBOpenDBRequest).result;
-				
+
 				if (!db.objectStoreNames.contains(STORE_NAME)) {
 					const objectStore = db.createObjectStore(STORE_NAME, {
 						keyPath: 'id',
 						autoIncrement: true
 					});
-					
+
 					// Create index for timestamp to enable sorting
 					objectStore.createIndex('timestamp', 'timestamp', { unique: false });
-					
+
 					// Create index for product name to enable searching
 					objectStore.createIndex('productName', 'product.name', { unique: false });
 				}
@@ -48,7 +48,7 @@ class HistoryDB {
 
 	async addEntry(entry: Omit<HistoryEntry, 'id'>): Promise<number> {
 		await this.init();
-		
+
 		return new Promise((resolve, reject) => {
 			const transaction = this.db!.transaction([STORE_NAME], 'readwrite');
 			const store = transaction.objectStore(STORE_NAME);
@@ -61,7 +61,7 @@ class HistoryDB {
 
 	async getAll(): Promise<HistoryEntry[]> {
 		await this.init();
-		
+
 		return new Promise((resolve, reject) => {
 			const transaction = this.db!.transaction([STORE_NAME], 'readonly');
 			const store = transaction.objectStore(STORE_NAME);
@@ -86,7 +86,7 @@ class HistoryDB {
 
 	async getById(id: number): Promise<HistoryEntry | undefined> {
 		await this.init();
-		
+
 		return new Promise((resolve, reject) => {
 			const transaction = this.db!.transaction([STORE_NAME], 'readonly');
 			const store = transaction.objectStore(STORE_NAME);
@@ -99,7 +99,7 @@ class HistoryDB {
 
 	async deleteEntry(id: number): Promise<void> {
 		await this.init();
-		
+
 		return new Promise((resolve, reject) => {
 			const transaction = this.db!.transaction([STORE_NAME], 'readwrite');
 			const store = transaction.objectStore(STORE_NAME);
@@ -114,11 +114,11 @@ class HistoryDB {
 		const allEntries = await this.getAll();
 		const lowerQuery = query.toLowerCase();
 
-		return allEntries.filter(entry => {
+		return allEntries.filter((entry) => {
 			const nameMatch = entry.product.name?.toLowerCase().includes(lowerQuery);
 			const descMatch = entry.product.description?.toLowerCase().includes(lowerQuery);
-			const ingredientsMatch = entry.product.ingredients?.some(
-				ing => ing.toLowerCase().includes(lowerQuery)
+			const ingredientsMatch = entry.product.ingredients?.some((ing) =>
+				ing.toLowerCase().includes(lowerQuery)
 			);
 
 			return nameMatch || descMatch || ingredientsMatch;
@@ -127,7 +127,7 @@ class HistoryDB {
 
 	async clearAll(): Promise<void> {
 		await this.init();
-		
+
 		return new Promise((resolve, reject) => {
 			const transaction = this.db!.transaction([STORE_NAME], 'readwrite');
 			const store = transaction.objectStore(STORE_NAME);
@@ -140,7 +140,7 @@ class HistoryDB {
 
 	async getCount(): Promise<number> {
 		await this.init();
-		
+
 		return new Promise((resolve, reject) => {
 			const transaction = this.db!.transaction([STORE_NAME], 'readonly');
 			const store = transaction.objectStore(STORE_NAME);

@@ -1,18 +1,28 @@
 <script lang="ts">
 	import * as Alert from '$lib/components/ui/alert';
+	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Tabs from '$lib/components/ui/tabs';
-	import { Sparkles, AlertCircle } from '@lucide/svelte';
+	import { Button } from '$lib/components/ui/button';
+	import { Sparkles, AlertCircle, User, Info } from '@lucide/svelte';
 	import type { BaseAIClient, Product, ProductAssessment } from '$lib/ai/base';
 	import ImageUpload from '$lib/components/custom/image-upload.svelte';
 	import ProductEntry from '$lib/components/custom/product-entry.svelte';
 	import ProductInfo from '$lib/components/custom/product-info.svelte';
 	import AssessmentResults from '$lib/components/custom/assessment-results.svelte';
 	import { historyStore } from '$lib/stores/history.svelte';
+	import { profileStore } from '$lib/stores/profile.svelte';
 	import type { PageData } from './$types';
+	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
+	import { resolveRoute } from '$app/paths';
 
-	let {data}: { data: PageData } = $props();
+	let { data }: { data: PageData } = $props();
 
 	const aiClient = data.aiClient as BaseAIClient;
+
+	onMount(() => {
+		profileStore.load();
+	});
 
 	let images = $state<File[]>([]);
 	let loading = $state(false);
@@ -20,6 +30,7 @@
 	let product = $state<Product | null>(null);
 	let assessment = $state<ProductAssessment | null>(null);
 	let activeTab = $state('image');
+	let showProfilePrompt = $state(false);
 
 	let productEntryComponent = $state<ProductEntry | null>(null);
 
@@ -41,18 +52,24 @@
 		assessment = null;
 
 		try {
-		product = await aiClient.extractProductInfo(images);
-		activeTab = 'productinfo';
-	} catch (err) {
-		error = err instanceof Error ? err.message : 'Failed to extract product information';
-	} finally {
-		loading = false;
-	}
+			product = await aiClient.extractProductInfo(images);
+			activeTab = 'productinfo';
+		} catch (err) {
+			error = err instanceof Error ? err.message : 'Failed to extract product information';
+		} finally {
+			loading = false;
+		}
 	}
 
 	async function assessProduct() {
 		if (!product && images.length === 0) {
 			error = 'Please extract product information first or upload images';
+			return;
+		}
+
+		// Check if user has a profile
+		if (!profileStore.isComplete) {
+			showProfilePrompt = true;
 			return;
 		}
 
@@ -65,25 +82,29 @@
 			if (!product && images.length > 0) {
 				product = await aiClient.extractProductInfo(images);
 			}
-			
+
 			// Now assess the product
 			if (product) {
-				assessment = await aiClient.assessProduct(product);
-				
+				assessment = await aiClient.assessProduct(product, profileStore.data);
+
 				// Save to history with deep clone to ensure serializability
 				if (assessment) {
-					const cleanProduct = JSON.parse(JSON.stringify({
-						name: product.name,
-						description: product.description || undefined,
-						ingredients: product.ingredients || undefined
-					}));
-					
-					const cleanAssessment = JSON.parse(JSON.stringify({
-						pros: assessment.pros,
-						cons: assessment.cons,
-						score: assessment.score
-					}));
-					
+					const cleanProduct = JSON.parse(
+						JSON.stringify({
+							name: product.name,
+							description: product.description || undefined,
+							ingredients: product.ingredients || undefined
+						})
+					);
+
+					const cleanAssessment = JSON.parse(
+						JSON.stringify({
+							pros: assessment.pros,
+							cons: assessment.cons,
+							score: assessment.score
+						})
+					);
+
 					await historyStore.add(cleanProduct, cleanAssessment);
 				}
 			}
@@ -94,14 +115,18 @@
 		}
 	}
 
-	async function handleManualSubmit(data: { name: string; description?: string; ingredients: string[] }) {
+	async function handleManualSubmit(data: {
+		name: string;
+		description?: string;
+		ingredients: string[];
+	}) {
 		product = {
 			name: data.name,
 			description: data.description,
 			ingredients: data.ingredients
 		};
 		error = null;
-		
+
 		// Immediately assess the product
 		await assessProduct();
 	}
@@ -113,27 +138,78 @@
 		error = null;
 		productEntryComponent?.reset();
 	}
+
+	function goToProfile() {
+		goto(resolveRoute('/profile'));
+	}
 </script>
+
+<!-- Profile Prompt Dialog -->
+{#if showProfilePrompt}
+	<Dialog.Root bind:open={showProfilePrompt}>
+		<Dialog.Content class="sm:max-w-md">
+			<Dialog.Header>
+				<div class="mb-4 flex justify-center">
+					<div class="rounded-full bg-primary/10 p-4">
+						<User class="h-8 w-8 text-primary" />
+					</div>
+				</div>
+				<Dialog.Title class="text-center text-xl">Complete Your Profile First</Dialog.Title>
+				<Dialog.Description class="text-center">
+					To get personalized skincare assessments tailored to your unique skin needs, please
+					complete your profile first.
+				</Dialog.Description>
+			</Dialog.Header>
+			<Dialog.Footer class="flex-col gap-2 sm:flex-col">
+				<Button onclick={goToProfile} class="w-full gap-2">
+					<User class="h-4 w-4" />
+					Complete Profile
+				</Button>
+				<Button variant="ghost" onclick={() => (showProfilePrompt = false)} class="w-full">
+					Maybe Later
+				</Button>
+			</Dialog.Footer>
+		</Dialog.Content>
+	</Dialog.Root>
+{/if}
 
 <div class="container mx-auto max-w-5xl p-4 sm:p-6 lg:p-8">
 	<!-- Hero Section -->
-	<div class="mb-8 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background p-8 sm:p-10">
-		<div class="flex items-center gap-3 mb-4">
+	<div
+		class="mb-8 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background p-8 sm:p-10"
+	>
+		<div class="mb-4 flex items-center gap-3">
 			<div class="rounded-xl bg-primary/20 p-3">
 				<Sparkles class="h-8 w-8 text-primary" />
 			</div>
-			<h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
-				Skeen
-			</h1>
+			<h1 class="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">Skeen</h1>
 		</div>
-		<p class="text-lg text-muted-foreground max-w-2xl">
-			Your AI-powered skincare product analyzer. Upload images or enter product details to get instant, science-backed assessments.
+		<p class="max-w-2xl text-lg text-muted-foreground">
+			Your AI-powered skincare product analyzer. Upload images or enter product details to get
+			instant, science-backed assessments.
 		</p>
 	</div>
 
+	<!-- Profile Incomplete Banner -->
+	{#if profileStore.initialized && !profileStore.isComplete}
+		<Alert.Root class="mb-6 border-blue-500/50 bg-blue-500/10">
+			<Info class="h-4 w-4 text-blue-600" />
+			<Alert.Title>Complete your profile for personalized assessments</Alert.Title>
+			<Alert.Description class="flex items-center justify-between gap-4">
+				<span>
+					Get tailored skincare recommendations based on your skin type, concerns, and preferences.
+				</span>
+				<Button variant="outline" size="sm" onclick={goToProfile} class="shrink-0 gap-2">
+					<User class="h-3.5 w-3.5" />
+					Complete Profile
+				</Button>
+			</Alert.Description>
+		</Alert.Root>
+	{/if}
+
 	<!-- Tabs for Manual Input and Image Upload -->
 	<Tabs.Root bind:value={activeTab} class="mb-8">
-		<Tabs.List class="grid w-full grid-cols-2 p-1 bg-muted/50">
+		<Tabs.List class="grid w-full grid-cols-2 bg-muted/50 p-1">
 			<Tabs.Trigger value="image" class="gap-2">📸 Image Upload</Tabs.Trigger>
 			<Tabs.Trigger value="productinfo" class="gap-2">✍️ Product Info</Tabs.Trigger>
 		</Tabs.List>

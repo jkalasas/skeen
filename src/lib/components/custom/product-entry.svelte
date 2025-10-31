@@ -14,7 +14,13 @@
 		initialIngredients?: string[];
 	}
 
-	let { loading = false, onsubmit, initialName = '', initialDescription = '', initialIngredients = [] }: Props = $props();
+	let {
+		loading = false,
+		onsubmit,
+		initialName = '',
+		initialDescription = '',
+		initialIngredients = []
+	}: Props = $props();
 
 	let name = $state(initialName);
 	let description = $state(initialDescription);
@@ -36,8 +42,8 @@
 			description: description.trim() || undefined,
 			ingredients: ingredients
 				.split(',')
-				.map(i => i.trim())
-				.filter(i => i.length > 0)
+				.map((i) => i.trim())
+				.filter((i) => i.length > 0)
 		});
 	}
 
@@ -56,12 +62,13 @@
 			</div>
 			<Card.Title class="text-xl">Product Details</Card.Title>
 		</div>
-		<Card.Description>Enter your product information manually for instant analysis</Card.Description>
+		<Card.Description>Enter your product information manually for instant analysis</Card.Description
+		>
 	</Card.Header>
 	<Card.Content>
 		<div class="space-y-5">
 			<div class="space-y-2">
-				<Label for="manual-name" class="text-sm font-semibold flex items-center gap-2">
+				<Label for="manual-name" class="flex items-center gap-2 text-sm font-semibold">
 					<Package class="h-3.5 w-3.5" />
 					Product Name *
 				</Label>
@@ -74,7 +81,7 @@
 			</div>
 
 			<div class="space-y-2">
-				<Label for="manual-description" class="text-sm font-semibold flex items-center gap-2">
+				<Label for="manual-description" class="flex items-center gap-2 text-sm font-semibold">
 					<FileText class="h-3.5 w-3.5" />
 					Description (optional)
 				</Label>
@@ -87,7 +94,7 @@
 			</div>
 
 			<div class="space-y-2">
-				<Label for="manual-ingredients" class="text-sm font-semibold flex items-center gap-2">
+				<Label for="manual-ingredients" class="flex items-center gap-2 text-sm font-semibold">
 					<FlaskConical class="h-3.5 w-3.5" />
 					Ingredients (comma-separated, optional)
 				</Label>
@@ -101,7 +108,11 @@
 				<p class="text-xs text-muted-foreground">Separate each ingredient with a comma</p>
 			</div>
 
-			<Button onclick={handleSubmit} disabled={loading || !name.trim()} class="w-full h-11 gap-2 text-base">
+			<Button
+				onclick={handleSubmit}
+				disabled={loading || !name.trim()}
+				class="h-11 w-full gap-2 text-base"
+			>
 				<Sparkles class="h-4 w-4" />
 				{loading ? 'Analyzing...' : 'Assess Product'}
 			</Button>

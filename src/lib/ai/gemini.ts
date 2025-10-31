@@ -2,6 +2,7 @@ import { GoogleGenAI, Type, type Content, type GenerateContentConfig } from '@go
 
 import { BaseAIClient, type Product, type ProductAssessment } from './base';
 import { imageFileToBase64 } from '$lib/image';
+import type { UserProfile } from '$lib/types/profile';
 
 const BASE_CONFIG: GenerateContentConfig = {
 	thinkingConfig: {
@@ -10,31 +11,47 @@ const BASE_CONFIG: GenerateContentConfig = {
 	responseMimeType: 'application/json'
 };
 
-const ASSESS_PRODUCT_INFO_CONFIG: GenerateContentConfig = {
-	...BASE_CONFIG,
-	systemInstruction: 'Provide a detailed assessment of the skincare product.',
-	responseSchema: {
-		type: Type.OBJECT,
-		properties: {
-			pros: {
-				type: Type.ARRAY,
-				items: {
-					type: Type.STRING
-				}
-			},
-			cons: {
-				type: Type.ARRAY,
-				items: {
-					type: Type.STRING
-				}
-			},
-			score: {
-				type: Type.NUMBER,
-				description: 'A score from 0 to 10 evaluating the product overall.'
-			}
+function buildSystemInstruction(userProfile?: UserProfile | null): string {
+	let instruction = 'Provide a detailed assessment of the skincare product.';
+
+	if (userProfile) {
+		instruction += `\n\nConsider the following user profile when making your assessment:
+- Skin Type: ${userProfile.skinType}
+- Sensitive Skin: ${userProfile.isSensitive ? 'Yes' : 'No'}
+- Age Range: ${userProfile.ageRange}
+- Skin Concerns: ${userProfile.skinConcerns.join(', ')}`;
+
+		if (userProfile.sunExposure) {
+			instruction += `\n- Sun Exposure: ${userProfile.sunExposure}`;
 		}
-	},
-	temperature: 0.3,
+
+		instruction +=
+			'\n\nTailor your assessment to address their specific skin type, concerns, and sensitivity. Highlight ingredients that are particularly beneficial or potentially problematic for their profile.';
+	}
+
+	return instruction;
+}
+
+const ASSESS_PRODUCT_INFO_SCHEMA = {
+	type: Type.OBJECT,
+	properties: {
+		pros: {
+			type: Type.ARRAY,
+			items: {
+				type: Type.STRING
+			}
+		},
+		cons: {
+			type: Type.ARRAY,
+			items: {
+				type: Type.STRING
+			}
+		},
+		score: {
+			type: Type.NUMBER,
+			description: 'A score from 0 to 10 evaluating the product overall.'
+		}
+	}
 };
 
 const EXTRACT_PRODUCT_INFO_CONFIG: GenerateContentConfig = {
@@ -57,7 +74,7 @@ const EXTRACT_PRODUCT_INFO_CONFIG: GenerateContentConfig = {
 			}
 		}
 	},
-	temperature: 0,
+	temperature: 0
 };
 
 export class GeminiAIClient extends BaseAIClient {
@@ -96,21 +113,37 @@ export class GeminiAIClient extends BaseAIClient {
 		];
 	}
 
-	async assessProduct(product: Product): Promise<ProductAssessment> {
+	async assessProduct(
+		product: Product,
+		userProfile?: UserProfile | null
+	): Promise<ProductAssessment> {
 		const response = await this.client.models.generateContent({
 			model: 'gemini-flash-lite-latest',
 			contents: this.buildContent(product),
-			config: ASSESS_PRODUCT_INFO_CONFIG
+			config: {
+				...BASE_CONFIG,
+				systemInstruction: buildSystemInstruction(userProfile),
+				responseSchema: ASSESS_PRODUCT_INFO_SCHEMA,
+				temperature: 0.3
+			}
 		});
 
 		return JSON.parse(response.text as string) as ProductAssessment;
 	}
 
-	async assessProductFromImages(images: File[]): Promise<ProductAssessment> {
+	async assessProductFromImages(
+		images: File[],
+		userProfile?: UserProfile | null
+	): Promise<ProductAssessment> {
 		const response = await this.client.models.generateContent({
 			model: 'gemini-flash-lite-latest',
 			contents: await this.buildContentFromImages(images),
-			config: ASSESS_PRODUCT_INFO_CONFIG
+			config: {
+				...BASE_CONFIG,
+				systemInstruction: buildSystemInstruction(userProfile),
+				responseSchema: ASSESS_PRODUCT_INFO_SCHEMA,
+				temperature: 0.3
+			}
 		});
 
 		return JSON.parse(response.text as string) as ProductAssessment;
