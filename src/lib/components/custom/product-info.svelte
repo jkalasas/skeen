@@ -12,7 +12,7 @@
 	let { product }: Props = $props();
 </script>
 
-<Card.Root class="mb-6 border-2 shadow-lg bg-gradient-to-br from-background to-muted/20">
+<Card.Root class="mb-6 border-2 bg-gradient-to-br from-background to-muted/20 shadow-lg">
 	<Card.Header class="space-y-1">
 		<div class="flex items-center gap-2">
 			<div class="rounded-lg bg-primary/10 p-2">
@@ -22,8 +22,8 @@
 		</div>
 	</Card.Header>
 	<Card.Content class="space-y-5">
-		<div class="space-y-2 rounded-lg bg-background/50 p-4 border">
-			<h3 class="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
+		<div class="space-y-2 rounded-lg border bg-background/50 p-4">
+			<h3 class="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
 				<Package class="h-3.5 w-3.5" />
 				Product Name
 			</h3>
@@ -31,8 +31,8 @@
 		</div>
 
 		{#if product.description}
-			<div class="space-y-2 rounded-lg bg-background/50 p-4 border">
-				<h3 class="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
+			<div class="space-y-2 rounded-lg border bg-background/50 p-4">
+				<h3 class="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
 					<FileText class="h-3.5 w-3.5" />
 					Description
 				</h3>
@@ -41,8 +41,8 @@
 		{/if}
 
 		{#if product.ingredients && product.ingredients.length > 0}
-			<div class="space-y-3 rounded-lg bg-background/50 p-4 border">
-				<h3 class="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
+			<div class="space-y-3 rounded-lg border bg-background/50 p-4">
+				<h3 class="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
 					<FlaskConical class="h-3.5 w-3.5" />
 					Ingredients ({product.ingredients.length})
 				</h3>
