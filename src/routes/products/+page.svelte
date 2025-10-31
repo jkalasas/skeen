@@ -479,6 +479,7 @@
 						initialName={extractedProduct?.name || editingProduct?.name || ''}
 						initialDescription={extractedProduct?.description || editingProduct?.description || ''}
 						initialIngredients={extractedProduct?.ingredients || editingProduct?.ingredients || []}
+						buttonText="Save"
 						onsubmit={handleManualSubmit}
 					/>
 				</Tabs.Content>

@@ -12,6 +12,7 @@
 		initialName?: string;
 		initialDescription?: string;
 		initialIngredients?: string[];
+		buttonText?: string;
 	}
 
 	let {
@@ -19,7 +20,8 @@
 		onsubmit,
 		initialName = '',
 		initialDescription = '',
-		initialIngredients = []
+		initialIngredients = [],
+		buttonText = 'Assess Product'
 	}: Props = $props();
 
 	let name = $state(initialName);
@@ -114,7 +116,7 @@
 				class="h-11 w-full gap-2 text-base"
 			>
 				<Sparkles class="h-4 w-4" />
-				{loading ? 'Analyzing...' : 'Assess Product'}
+				{loading ? 'Saving...' : buttonText}
 			</Button>
 		</div>
 	</Card.Content>

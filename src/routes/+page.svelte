@@ -353,6 +353,20 @@
 	<!-- Product Information (with assessment) -->
 	{#if product && assessment}
 		<ProductInfo {product} />
+
+		<!-- Save to Collection Button under ProductInfo when assessment exists -->
+		<div class="mb-6 flex justify-end">
+			<Button
+				onclick={saveProductToCache}
+				variant="outline"
+				size="sm"
+				class="gap-2"
+				disabled={loading || !!productsStore.findByName(product.name)}
+			>
+				<Save class="h-4 w-4" />
+				{productsStore.findByName(product.name) ? 'Already Saved' : 'Add to Products'}
+			</Button>
+		</div>
 	{/if}
 
 	<!-- Assessment Results -->
