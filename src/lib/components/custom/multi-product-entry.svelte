@@ -15,7 +15,8 @@
 		FlaskConical,
 		Image as ImageIcon,
 		Trash2,
-		SwitchCamera
+		SwitchCamera,
+		Search
 	} from '@lucide/svelte';
 	import type { Product } from '$lib/ai/base';
 	import { onMount } from 'svelte';
@@ -27,6 +28,7 @@
 		onremove: () => void;
 		onextractfromimages: (images: File[]) => void;
 		onmanualsubmit: (data: { name: string; description?: string; ingredients: string[] }) => void;
+		onsearchproducts?: () => void;
 	}
 
 	let {
@@ -35,7 +37,8 @@
 		loading = false,
 		onremove,
 		onextractfromimages,
-		onmanualsubmit
+		onmanualsubmit,
+		onsearchproducts
 	}: Props = $props();
 
 	let activeTab = $state<string>('image');
@@ -229,6 +232,21 @@
 	</Card.Header>
 
 	<Card.Content>
+		{#if onsearchproducts}
+			<div class="mb-4">
+				<Button
+					onclick={onsearchproducts}
+					variant="outline"
+					class="w-full gap-2"
+					disabled={loading}
+					size="sm"
+				>
+					<Search class="h-3.5 w-3.5" />
+					Search Saved Products
+				</Button>
+			</div>
+		{/if}
+
 		<Tabs.Root bind:value={activeTab}>
 			<Tabs.List class="grid w-full grid-cols-2 bg-muted/50 p-1">
 				<Tabs.Trigger value="image">📸 Image</Tabs.Trigger>

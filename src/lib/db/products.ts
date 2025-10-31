@@ -1,18 +1,16 @@
-import type { Product, ProductAssessment } from '$lib/ai/base';
+import type { Product } from '$lib/ai/base';
 
-export interface HistoryEntry {
+export interface StoredProduct extends Product {
 	id?: number;
-	product: Product;
-	assessment: ProductAssessment;
 	timestamp: number;
-	imageData?: string; // Base64 encoded image
+	lastUsed?: number;
 }
 
 const DB_NAME = 'skeenDB';
-const STORE_NAME = 'assessmentHistory';
-const DB_VERSION = 2; // Increment version to support products store
+const STORE_NAME = 'products';
+const DB_VERSION = 2; // Increment version to add new object store
 
-class HistoryDB {
+class ProductsDB {
 	private db: IDBDatabase | null = null;
 
 	async init(): Promise<void> {
@@ -30,24 +28,9 @@ class HistoryDB {
 			request.onupgradeneeded = (event) => {
 				const db = (event.target as IDBOpenDBRequest).result;
 
+				// Create products store if it doesn't exist
 				if (!db.objectStoreNames.contains(STORE_NAME)) {
 					const objectStore = db.createObjectStore(STORE_NAME, {
-						keyPath: 'id',
-						autoIncrement: true
-					});
-
-					// Create index for timestamp to enable sorting
-					objectStore.createIndex('timestamp', 'timestamp', { unique: false });
-
-					// Create index for product name to enable searching
-					objectStore.createIndex('productName', 'product.name', { unique: false });
-				}
-
-				// Also create products store if it doesn't exist
-				// This ensures both stores exist when upgrading to version 2
-				const PRODUCTS_STORE_NAME = 'products';
-				if (!db.objectStoreNames.contains(PRODUCTS_STORE_NAME)) {
-					const objectStore = db.createObjectStore(PRODUCTS_STORE_NAME, {
 						keyPath: 'id',
 						autoIncrement: true
 					});
@@ -61,24 +44,53 @@ class HistoryDB {
 					// Create index for lastUsed to enable sorting by recent usage
 					objectStore.createIndex('lastUsed', 'lastUsed', { unique: false });
 				}
+
+				// Also create assessment history store if it doesn't exist
+				// This ensures both stores exist when upgrading to version 2
+				const HISTORY_STORE_NAME = 'assessmentHistory';
+				if (!db.objectStoreNames.contains(HISTORY_STORE_NAME)) {
+					const objectStore = db.createObjectStore(HISTORY_STORE_NAME, {
+						keyPath: 'id',
+						autoIncrement: true
+					});
+
+					// Create index for timestamp to enable sorting
+					objectStore.createIndex('timestamp', 'timestamp', { unique: false });
+
+					// Create index for product name to enable searching
+					objectStore.createIndex('productName', 'product.name', { unique: false });
+				}
 			};
 		});
 	}
 
-	async addEntry(entry: Omit<HistoryEntry, 'id'>): Promise<number> {
+	async addProduct(product: Omit<StoredProduct, 'id'>): Promise<number> {
 		await this.init();
 
 		return new Promise((resolve, reject) => {
 			const transaction = this.db!.transaction([STORE_NAME], 'readwrite');
 			const store = transaction.objectStore(STORE_NAME);
-			const request = store.add(entry);
+			const request = store.add(product);
 
 			request.onsuccess = () => resolve(request.result as number);
 			request.onerror = () => reject(request.error);
 		});
 	}
 
-	async getAll(): Promise<HistoryEntry[]> {
+	async updateProduct(product: StoredProduct): Promise<void> {
+		await this.init();
+
+		return new Promise((resolve, reject) => {
+			const transaction = this.db!.transaction([STORE_NAME], 'readwrite');
+			const store = transaction.objectStore(STORE_NAME);
+			const request = store.put(product);
+
+			request.onsuccess = () => resolve();
+			request.onerror = () => reject(request.error);
+		});
+	}
+
+	async getAll(): Promise<StoredProduct[]> {
 		await this.init();
 
 		return new Promise((resolve, reject) => {
@@ -87,15 +99,15 @@ class HistoryDB {
 			const index = store.index('timestamp');
 			const request = index.openCursor(null, 'prev'); // Get in reverse chronological order
 
-			const entries: HistoryEntry[] = [];
+			const products: StoredProduct[] = [];
 
 			request.onsuccess = (event) => {
 				const cursor = (event.target as IDBRequest).result;
 				if (cursor) {
-					entries.push(cursor.value);
+					products.push(cursor.value);
 					cursor.continue();
 				} else {
-					resolve(entries);
+					resolve(products);
 				}
 			};
 
@@ -103,7 +115,7 @@ class HistoryDB {
 		});
 	}
 
-	async getById(id: number): Promise<HistoryEntry | undefined> {
+	async getById(id: number): Promise<StoredProduct | undefined> {
 		await this.init();
 
 		return new Promise((resolve, reject) => {
@@ -116,7 +128,7 @@ class HistoryDB {
 		});
 	}
 
-	async deleteEntry(id: number): Promise<void> {
+	async deleteProduct(id: number): Promise<void> {
 		await this.init();
 
 		return new Promise((resolve, reject) => {
@@ -129,14 +141,14 @@ class HistoryDB {
 		});
 	}
 
-	async search(query: string): Promise<HistoryEntry[]> {
-		const allEntries = await this.getAll();
+	async search(query: string): Promise<StoredProduct[]> {
+		const allProducts = await this.getAll();
 		const lowerQuery = query.toLowerCase();
 
-		return allEntries.filter((entry) => {
-			const nameMatch = entry.product.name?.toLowerCase().includes(lowerQuery);
-			const descMatch = entry.product.description?.toLowerCase().includes(lowerQuery);
-			const ingredientsMatch = entry.product.ingredients?.some((ing) =>
+		return allProducts.filter((product) => {
+			const nameMatch = product.name?.toLowerCase().includes(lowerQuery);
+			const descMatch = product.description?.toLowerCase().includes(lowerQuery);
+			const ingredientsMatch = product.ingredients?.some((ing) =>
 				ing.toLowerCase().includes(lowerQuery)
 			);
 
@@ -169,6 +181,16 @@ class HistoryDB {
 			request.onerror = () => reject(request.error);
 		});
 	}
+
+	async updateLastUsed(id: number): Promise<void> {
+		await this.init();
+
+		const product = await this.getById(id);
+		if (product) {
+			product.lastUsed = Date.now();
+			await this.updateProduct(product);
+		}
+	}
 }
 
-export const historyDB = new HistoryDB();
+export const productsDB = new ProductsDB();

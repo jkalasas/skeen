@@ -3,7 +3,7 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { page } from '$app/stores';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import { History, Sparkles, User, GitCompare, Heart } from '@lucide/svelte';
+	import { History, Sparkles, User, GitCompare, Heart, Package } from '@lucide/svelte';
 
 	let { children } = $props();
 
@@ -11,6 +11,7 @@
 	const isProfilePage = $derived($page.url.pathname === '/profile');
 	const isComparisonPage = $derived($page.url.pathname === '/comparison');
 	const isCompanionPage = $derived($page.url.pathname === '/companion');
+	const isProductsPage = $derived($page.url.pathname === '/products');
 </script>
 
 <svelte:head>
@@ -36,6 +37,10 @@
 					<Button variant={isCompanionPage ? 'default' : 'ghost'} href="/companion" class="gap-2">
 						<Heart class="h-4 w-4" />
 						<span class="hidden sm:inline">Companion</span>
+					</Button>
+					<Button variant={isProductsPage ? 'default' : 'ghost'} href="/products" class="gap-2">
+						<Package class="h-4 w-4" />
+						<span class="hidden sm:inline">Products</span>
 					</Button>
 					<Button variant={isProfilePage ? 'default' : 'ghost'} href="/profile" class="gap-2">
 						<User class="h-4 w-4" />

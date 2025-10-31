@@ -3,14 +3,16 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Tabs from '$lib/components/ui/tabs';
 	import { Button } from '$lib/components/ui/button';
-	import { Sparkles, AlertCircle, User, Info } from '@lucide/svelte';
+	import { Sparkles, AlertCircle, User, Info, Save, Search, Database } from '@lucide/svelte';
 	import type { BaseAIClient, Product, ProductAssessment } from '$lib/ai/base';
 	import ImageUpload from '$lib/components/custom/image-upload.svelte';
 	import ProductEntry from '$lib/components/custom/product-entry.svelte';
 	import ProductInfo from '$lib/components/custom/product-info.svelte';
 	import AssessmentResults from '$lib/components/custom/assessment-results.svelte';
+	import ProductSearch from '$lib/components/custom/product-search.svelte';
 	import { historyStore } from '$lib/stores/history.svelte';
 	import { profileStore } from '$lib/stores/profile.svelte';
+	import { productsStore } from '$lib/stores/products.svelte';
 	import type { PageData } from './$types';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -20,10 +22,6 @@
 
 	const aiClient = data.aiClient as BaseAIClient;
 
-	onMount(() => {
-		profileStore.load();
-	});
-
 	let images = $state<File[]>([]);
 	let loading = $state(false);
 	let error = $state<string | null>(null);
@@ -31,8 +29,23 @@
 	let assessment = $state<ProductAssessment | null>(null);
 	let activeTab = $state('image');
 	let showProfilePrompt = $state(false);
+	let showProductSearch = $state(false);
+	let showSaveSuccess = $state(false);
 
 	let productEntryComponent = $state<ProductEntry | null>(null);
+	let saveSuccessTimeout: number | undefined = undefined;
+
+	onMount(() => {
+		profileStore.load();
+		productsStore.load();
+
+		return () => {
+			// Clear timeout on unmount
+			if (saveSuccessTimeout !== undefined) {
+				clearTimeout(saveSuccessTimeout);
+			}
+		};
+	});
 
 	function handleImagesChange() {
 		product = null;
@@ -142,6 +155,44 @@
 	function goToProfile() {
 		goto(resolveRoute('/profile'));
 	}
+
+	async function saveProductToCache() {
+		if (!product) return;
+
+		// Clear any existing timeout
+		if (saveSuccessTimeout !== undefined) {
+			clearTimeout(saveSuccessTimeout);
+		}
+
+		try {
+			// Check if product with same name already exists
+			const existing = productsStore.findByName(product.name);
+			if (existing) {
+				error = 'A product with this name already exists in your collection';
+				return;
+			}
+
+			await productsStore.add(product);
+			showSaveSuccess = true;
+			saveSuccessTimeout = window.setTimeout(() => {
+				showSaveSuccess = false;
+			}, 3000);
+		} catch (err) {
+			error = err instanceof Error ? err.message : 'Failed to save product';
+		}
+	}
+
+	function handleProductSelect(selectedProduct: Product) {
+		product = selectedProduct;
+		error = null;
+		assessment = null;
+		activeTab = 'productinfo';
+
+		// Update the product entry component if it exists
+		if (productEntryComponent) {
+			productEntryComponent.reset();
+		}
+	}
 </script>
 
 <!-- Profile Prompt Dialog -->
@@ -172,6 +223,13 @@
 		</Dialog.Content>
 	</Dialog.Root>
 {/if}
+
+<!-- Product Search Dialog -->
+<ProductSearch
+	bind:open={showProductSearch}
+	onselect={handleProductSelect}
+	onclose={() => (showProductSearch = false)}
+/>
 
 <div class="container mx-auto max-w-5xl p-4 sm:p-6 lg:p-8">
 	<!-- Hero Section -->
@@ -214,6 +272,19 @@
 			<Tabs.Trigger value="productinfo" class="gap-2">✍️ Product Info</Tabs.Trigger>
 		</Tabs.List>
 
+		<!-- Search Products Button -->
+		<div class="mt-4 mb-4">
+			<Button
+				onclick={() => (showProductSearch = true)}
+				variant="outline"
+				class="w-full gap-2"
+				disabled={loading}
+			>
+				<Search class="h-4 w-4" />
+				Search Saved Products ({productsStore.items.length})
+			</Button>
+		</div>
+
 		<!-- Image Upload Tab -->
 		<Tabs.Content value="image">
 			<ImageUpload
@@ -248,9 +319,54 @@
 		</Alert.Root>
 	{/if}
 
+	<!-- Save Success Message -->
+	{#if showSaveSuccess}
+		<Alert.Root class="mb-6 border-green-500/50 bg-green-500/10">
+			<Database class="h-4 w-4 text-green-600" />
+			<Alert.Title>Product Saved!</Alert.Title>
+			<Alert.Description>
+				The product has been saved to your collection and can now be used in assessments.
+			</Alert.Description>
+		</Alert.Root>
+	{/if}
+
 	<!-- Product Information -->
+	{#if product && !assessment}
+		<div class="mb-6">
+			<div class="mb-4 flex items-center justify-between">
+				<h2 class="text-xl font-semibold">Extracted Product Information</h2>
+				<Button
+					onclick={saveProductToCache}
+					variant="outline"
+					size="sm"
+					class="gap-2"
+					disabled={loading || !!productsStore.findByName(product.name)}
+				>
+					<Save class="h-4 w-4" />
+					{productsStore.findByName(product.name) ? 'Already Saved' : 'Save to Collection'}
+				</Button>
+			</div>
+			<ProductInfo {product} />
+		</div>
+	{/if}
+
+	<!-- Product Information (with assessment) -->
 	{#if product && assessment}
 		<ProductInfo {product} />
+
+		<!-- Save to Collection Button under ProductInfo when assessment exists -->
+		<div class="mb-6 flex justify-end">
+			<Button
+				onclick={saveProductToCache}
+				variant="outline"
+				size="sm"
+				class="gap-2"
+				disabled={loading || !!productsStore.findByName(product.name)}
+			>
+				<Save class="h-4 w-4" />
+				{productsStore.findByName(product.name) ? 'Already Saved' : 'Add to Products'}
+			</Button>
+		</div>
 	{/if}
 
 	<!-- Assessment Results -->
