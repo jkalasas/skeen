@@ -7,7 +7,6 @@
 	import { productsStore } from '$lib/stores/products.svelte';
 	import type { StoredProduct } from '$lib/db/products';
 	import type { Product } from '$lib/ai/base';
-	import { onMount } from 'svelte';
 
 	interface Props {
 		open: boolean;
@@ -20,18 +19,16 @@
 	let searchQuery = $state('');
 	let selectedProduct = $state<StoredProduct | null>(null);
 
-	// Watch for open changes to trigger close callback
+	// Watch for open changes to reset state and load products
 	$effect(() => {
 		if (!open) {
 			// Reset state when dialog closes
 			searchQuery = '';
 			selectedProduct = null;
+		} else {
+			// Load products when dialog opens
+			productsStore.search('');
 		}
-	});
-
-	onMount(() => {
-		// Load products when component mounts
-		productsStore.load();
 	});
 
 	// Search products when query changes

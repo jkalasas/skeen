@@ -22,11 +22,6 @@
 
 	const aiClient = data.aiClient as BaseAIClient;
 
-	onMount(() => {
-		profileStore.load();
-		productsStore.load();
-	});
-
 	let images = $state<File[]>([]);
 	let loading = $state(false);
 	let error = $state<string | null>(null);
@@ -41,6 +36,9 @@
 	let saveSuccessTimeout: number | undefined = undefined;
 
 	onMount(() => {
+		profileStore.load();
+		productsStore.load();
+
 		return () => {
 			// Clear timeout on unmount
 			if (saveSuccessTimeout !== undefined) {
