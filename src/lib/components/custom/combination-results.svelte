@@ -1,7 +1,5 @@
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card';
-	import * as Alert from '$lib/components/ui/alert';
-	import { Badge } from '$lib/components/ui/badge';
 	import { Heart, AlertTriangle, Lightbulb, CheckCircle2, XCircle } from '@lucide/svelte';
 	import type { ProductCombination } from '$lib/ai/base';
 
@@ -61,7 +59,7 @@
 					Synergies
 				</h3>
 				<ul class="space-y-3">
-					{#each combination.synergies as synergy}
+					{#each combination.synergies as synergy, i (i)}
 						<li class="flex items-start gap-3">
 							<CheckCircle2
 								class="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400"
@@ -85,7 +83,7 @@
 					Potential Conflicts
 				</h3>
 				<ul class="space-y-3">
-					{#each combination.conflicts as conflict}
+					{#each combination.conflicts as conflict, i (i)}
 						<li class="flex items-start gap-3">
 							<XCircle class="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600 dark:text-red-400" />
 							<span class="text-sm leading-relaxed">{conflict}</span>
@@ -107,11 +105,9 @@
 					Recommendations
 				</h3>
 				<ul class="space-y-3">
-					{#each combination.recommendations as recommendation}
+					{#each combination.recommendations as recommendation, i (i)}
 						<li class="flex items-start gap-3">
-							<Lightbulb
-								class="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400"
-							/>
+							<Lightbulb class="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400" />
 							<span class="text-sm leading-relaxed">{recommendation}</span>
 						</li>
 					{/each}

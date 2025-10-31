@@ -36,7 +36,11 @@
 		productEntryComponent?.reset();
 	}
 
-	function handleProductSubmit(data: { name: string; description?: string; ingredients: string[] }) {
+	function handleProductSubmit(data: {
+		name: string;
+		description?: string;
+		ingredients: string[];
+	}) {
 		const newProduct: Product = {
 			name: data.name,
 			description: data.description,
@@ -157,9 +161,7 @@
 			<div class="rounded-xl bg-primary/20 p-3">
 				<Heart class="h-8 w-8 text-primary" />
 			</div>
-			<h1 class="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-				Product Companion
-			</h1>
+			<h1 class="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">Product Companion</h1>
 		</div>
 		<p class="max-w-2xl text-lg text-muted-foreground">
 			Assess how well multiple products work together in your skincare routine.
@@ -188,7 +190,7 @@
 		<div class="mb-6">
 			<h2 class="mb-4 text-xl font-semibold">Your Products ({products.length})</h2>
 			<div class="grid gap-4 md:grid-cols-2">
-				{#each products as product, index}
+				{#each products as product, index (index)}
 					<Card.Root class="border-2">
 						<Card.Header>
 							<Card.Title class="flex items-center justify-between">
@@ -277,7 +279,7 @@
 		<div class="mb-6">
 			<h2 class="mb-4 text-xl font-semibold">Product Details</h2>
 			<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-				{#each products as product}
+				{#each products as product (product.name)}
 					<ProductInfo {product} />
 				{/each}
 			</div>

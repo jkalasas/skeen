@@ -136,9 +136,7 @@
 			<div class="rounded-xl bg-primary/20 p-3">
 				<GitCompare class="h-8 w-8 text-primary" />
 			</div>
-			<h1 class="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-				Product Comparison
-			</h1>
+			<h1 class="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">Product Comparison</h1>
 		</div>
 		<p class="max-w-2xl text-lg text-muted-foreground">
 			Compare two similar skincare products side-by-side to find the best match for your skin.

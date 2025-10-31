@@ -67,7 +67,7 @@
 								Strengths
 							</h4>
 							<ul class="space-y-2">
-								{#each comparison.product1Analysis.strengths as strength}
+								{#each comparison.product1Analysis.strengths as strength, i (i)}
 									<li class="flex items-start gap-2">
 										<CheckCircle2
 											class="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600 dark:text-green-400"
@@ -87,11 +87,9 @@
 								Weaknesses
 							</h4>
 							<ul class="space-y-2">
-								{#each comparison.product1Analysis.weaknesses as weakness}
+								{#each comparison.product1Analysis.weaknesses as weakness, i (i)}
 									<li class="flex items-start gap-2">
-										<XCircle
-											class="mt-0.5 h-4 w-4 flex-shrink-0 text-red-600 dark:text-red-400"
-										/>
+										<XCircle class="mt-0.5 h-4 w-4 flex-shrink-0 text-red-600 dark:text-red-400" />
 										<span class="text-sm leading-relaxed">{weakness}</span>
 									</li>
 								{/each}
@@ -119,7 +117,7 @@
 								Strengths
 							</h4>
 							<ul class="space-y-2">
-								{#each comparison.product2Analysis.strengths as strength}
+								{#each comparison.product2Analysis.strengths as strength, i (i)}
 									<li class="flex items-start gap-2">
 										<CheckCircle2
 											class="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600 dark:text-green-400"
@@ -139,11 +137,9 @@
 								Weaknesses
 							</h4>
 							<ul class="space-y-2">
-								{#each comparison.product2Analysis.weaknesses as weakness}
+								{#each comparison.product2Analysis.weaknesses as weakness, i (i)}
 									<li class="flex items-start gap-2">
-										<XCircle
-											class="mt-0.5 h-4 w-4 flex-shrink-0 text-red-600 dark:text-red-400"
-										/>
+										<XCircle class="mt-0.5 h-4 w-4 flex-shrink-0 text-red-600 dark:text-red-400" />
 										<span class="text-sm leading-relaxed">{weakness}</span>
 									</li>
 								{/each}

@@ -88,7 +88,8 @@ const COMPARE_PRODUCTS_SCHEMA = {
 	properties: {
 		areSimilar: {
 			type: Type.BOOLEAN,
-			description: 'Whether the products are similar enough to compare (e.g., both moisturizers, both cleansers)'
+			description:
+				'Whether the products are similar enough to compare (e.g., both moisturizers, both cleansers)'
 		},
 		reason: {
 			type: Type.STRING,

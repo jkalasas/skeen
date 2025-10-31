@@ -29,11 +29,7 @@
 					Skeen
 				</a>
 				<div class="flex items-center gap-2">
-					<Button
-						variant={isComparisonPage ? 'default' : 'ghost'}
-						href="/comparison"
-						class="gap-2"
-					>
+					<Button variant={isComparisonPage ? 'default' : 'ghost'} href="/comparison" class="gap-2">
 						<GitCompare class="h-4 w-4" />
 						<span class="hidden sm:inline">Compare</span>
 					</Button>
