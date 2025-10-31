@@ -20,6 +20,9 @@
 	<nav
 		class="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
 	>
+	<nav
+		class="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+	>
 		<div class="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
 			<div class="flex h-16 items-center justify-between">
 				<a href="/" class="flex items-center font-bold text-xl">
@@ -28,6 +31,11 @@
 					<span class="text-2xl">keen</span>
 				</a>
 				<div class="flex items-center gap-2">
+					<Button variant={isProfilePage ? 'default' : 'ghost'} href="/profile" class="gap-2">
+						<User class="h-4 w-4" />
+						Profile
+					</Button>
+					<Button variant={isHistoryPage ? 'default' : 'ghost'} href="/history" class="gap-2">
 					<Button variant={isProfilePage ? 'default' : 'ghost'} href="/profile" class="gap-2">
 						<User class="h-4 w-4" />
 						Profile
