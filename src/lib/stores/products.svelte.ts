@@ -36,16 +36,21 @@ class ProductsStore {
 		this._error = null;
 
 		try {
-			const storedProduct: Omit<StoredProduct, 'id'> = {
-				...product,
+			// Sanitize product data for IndexedDB storage
+			// Remove null values and convert to undefined or appropriate defaults
+			const sanitizedProduct: Omit<StoredProduct, 'id'> = {
+				name: product.name,
+				description: product.description || undefined,
+				ingredients:
+					product.ingredients && product.ingredients.length > 0 ? product.ingredients : undefined,
 				timestamp: Date.now(),
 				lastUsed: Date.now()
 			};
 
-			const id = await productsDB.addProduct(storedProduct);
+			const id = await productsDB.addProduct(sanitizedProduct);
 
 			// Add to the beginning of the array (most recent first)
-			this.products = [{ ...storedProduct, id }, ...this.products];
+			this.products = [{ ...sanitizedProduct, id }, ...this.products];
 
 			return id;
 		} catch (err) {
