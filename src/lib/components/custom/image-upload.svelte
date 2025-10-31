@@ -4,7 +4,15 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Badge } from '$lib/components/ui/badge';
-	import { Camera, Upload, SwitchCamera, X, Sparkles, RefreshCw, Image as ImageIcon } from '@lucide/svelte';
+	import {
+		Camera,
+		Upload,
+		SwitchCamera,
+		X,
+		Sparkles,
+		RefreshCw,
+		Image as ImageIcon
+	} from '@lucide/svelte';
 	import { onMount } from 'svelte';
 
 	interface Props {
@@ -16,7 +24,14 @@
 		onreset: () => void;
 	}
 
-	let { images = $bindable(), loading = false, onimageschange, onextract, onassess, onreset }: Props = $props();
+	let {
+		images = $bindable(),
+		loading = false,
+		onimageschange,
+		onextract,
+		onassess,
+		onreset
+	}: Props = $props();
 
 	let fileInput = $state<HTMLInputElement | null>(null);
 	let videoElement = $state<HTMLVideoElement | null>(null);
@@ -26,14 +41,14 @@
 	let cameraError = $state<string | null>(null);
 	let facingMode = $state<'user' | 'environment'>('environment');
 	let videoReady = $state(false);
-	
+
 	// Generate preview URLs from images
-	let imagePreviews = $derived(images.map(file => URL.createObjectURL(file)));
+	let imagePreviews = $derived(images.map((file) => URL.createObjectURL(file)));
 
 	// Cleanup preview URLs on component unmount
 	$effect(() => {
 		return () => {
-			imagePreviews.forEach(url => URL.revokeObjectURL(url));
+			imagePreviews.forEach((url) => URL.revokeObjectURL(url));
 		};
 	});
 
@@ -41,7 +56,7 @@
 		return () => {
 			// Cleanup camera stream on unmount
 			if (stream) {
-				stream.getTracks().forEach(track => track.stop());
+				stream.getTracks().forEach((track) => track.stop());
 			}
 		};
 	});
@@ -50,25 +65,25 @@
 		try {
 			cameraError = null;
 			videoReady = false;
-			
+
 			// Stop any existing stream first
 			if (stream) {
-				stream.getTracks().forEach(track => track.stop());
+				stream.getTracks().forEach((track) => track.stop());
 			}
-			
+
 			const mediaStream = await navigator.mediaDevices.getUserMedia({
 				video: {
-					facingMode: { ideal: facingMode },
+					facingMode: { ideal: facingMode }
 				},
 				audio: false
 			});
-			
+
 			stream = mediaStream;
 			isCameraActive = true;
-			
+
 			// Wait for next tick to ensure videoElement is bound
-			await new Promise(resolve => setTimeout(resolve, 100));
-			
+			await new Promise((resolve) => setTimeout(resolve, 100));
+
 			if (videoElement && stream) {
 				videoElement.srcObject = stream;
 				videoElement.onloadedmetadata = async () => {
@@ -90,7 +105,7 @@
 
 	function stopCamera() {
 		if (stream) {
-			stream.getTracks().forEach(track => track.stop());
+			stream.getTracks().forEach((track) => track.stop());
 			stream = null;
 		}
 		if (videoElement) {
@@ -110,7 +125,7 @@
 
 	function capturePhoto() {
 		if (!videoElement || !canvasElement) return;
-		
+
 		const context = canvasElement.getContext('2d');
 		if (!context) return;
 
@@ -122,14 +137,18 @@
 		context.drawImage(videoElement, 0, 0);
 
 		// Convert canvas to blob and create file
-		canvasElement.toBlob((blob) => {
-			if (blob) {
-				const timestamp = new Date().getTime();
-				const file = new File([blob], `camera-${timestamp}.jpg`, { type: 'image/jpeg' });
-				images = [...images, file];
-				onimageschange(images);
-			}
-		}, 'image/jpeg', 0.95);
+		canvasElement.toBlob(
+			(blob) => {
+				if (blob) {
+					const timestamp = new Date().getTime();
+					const file = new File([blob], `camera-${timestamp}.jpg`, { type: 'image/jpeg' });
+					images = [...images, file];
+					onimageschange(images);
+				}
+			},
+			'image/jpeg',
+			0.95
+		);
 	}
 
 	function handleFileSelect(event: Event) {
@@ -140,8 +159,6 @@
 			onimageschange(images);
 		}
 	}
-
-
 
 	function removeImage(index: number) {
 		images = images.filter((_, i) => i !== index);
@@ -166,7 +183,9 @@
 			</div>
 			<Card.Title class="text-xl">Upload Product Images</Card.Title>
 		</div>
-		<Card.Description>Select or capture images of your skincare product for analysis</Card.Description>
+		<Card.Description
+			>Select or capture images of your skincare product for analysis</Card.Description
+		>
 	</Card.Header>
 	<Card.Content>
 		<div class="space-y-6">
@@ -181,17 +200,17 @@
 							accept="image/*"
 							multiple
 							onchange={handleFileSelect}
-							class="file:mr-4 file:rounded-md file:border-0 file:bg-primary file:px-4 file:py-2 file:mb-2 file:text-sm file:font-semibold file:text-primary-foreground hover:file:bg-primary/90 h-full"
+							class="h-full file:mr-4 file:mb-2 file:rounded-md file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-semibold file:text-primary-foreground hover:file:bg-primary/90"
 						/>
 					</div>
 				</div>
 
 				<div class="space-y-2">
 					<Label class="text-sm font-semibold">Live Camera</Label>
-					<Button 
-						onclick={() => isCameraActive ? stopCamera() : startCamera()} 
+					<Button
+						onclick={() => (isCameraActive ? stopCamera() : startCamera())}
 						variant="outline"
-						class="w-full gap-2 h-13"
+						class="h-13 w-full gap-2"
 						disabled={loading}
 					>
 						<Camera class="h-4 w-4" />
@@ -201,19 +220,23 @@
 			</div>
 
 			{#if cameraError}
-				<div class="rounded-lg border-2 border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive flex items-start gap-2">
-					<X class="h-4 w-4 mt-0.5 flex-shrink-0" />
+				<div
+					class="flex items-start gap-2 rounded-lg border-2 border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive"
+				>
+					<X class="mt-0.5 h-4 w-4 flex-shrink-0" />
 					<span>{cameraError}</span>
 				</div>
 			{/if}
 
 			{#if isCameraActive}
 				<div class="space-y-4">
-					<div class="relative aspect-[3/4] overflow-hidden rounded-xl border-2 bg-muted shadow-inner">
+					<div
+						class="relative aspect-[3/4] overflow-hidden rounded-xl border-2 bg-muted shadow-inner"
+					>
 						{#if !videoReady}
 							<div class="absolute inset-0 flex items-center justify-center bg-black/90">
 								<div class="flex flex-col items-center gap-3">
-									<Camera class="h-8 w-8 text-white animate-pulse" />
+									<Camera class="h-8 w-8 animate-pulse text-white" />
 									<p class="text-sm text-white">Loading camera...</p>
 								</div>
 							</div>
@@ -227,13 +250,22 @@
 						></video>
 						<canvas bind:this={canvasElement} class="hidden"></canvas>
 					</div>
-					
+
 					<div class="flex flex-wrap gap-2">
-						<Button onclick={capturePhoto} disabled={loading || !videoReady} class="gap-2 flex-1 sm:flex-none">
+						<Button
+							onclick={capturePhoto}
+							disabled={loading || !videoReady}
+							class="flex-1 gap-2 sm:flex-none"
+						>
 							<Camera class="h-4 w-4" />
 							Capture Photo
 						</Button>
-						<Button onclick={toggleCamera} variant="outline" disabled={loading || !videoReady} class="gap-2">
+						<Button
+							onclick={toggleCamera}
+							variant="outline"
+							disabled={loading || !videoReady}
+							class="gap-2"
+						>
 							<SwitchCamera class="h-4 w-4" />
 							Switch
 						</Button>
@@ -250,25 +282,33 @@
 			{#if images.length > 0}
 				<div class="space-y-4">
 					<div class="rounded-lg bg-muted/50 p-4">
-						<div class="flex items-center gap-2 mb-4">
+						<div class="mb-4 flex items-center gap-2">
 							<Badge variant="secondary" class="gap-1.5">
 								<ImageIcon class="h-3 w-3" />
-								{images.length} {images.length === 1 ? 'image' : 'images'}
+								{images.length}
+								{images.length === 1 ? 'image' : 'images'}
 							</Badge>
 						</div>
-						
+
 						<!-- Image Previews Grid -->
 						<div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
 							{#each images as image, index}
-								<div class="group relative aspect-square overflow-hidden rounded-xl border-2 bg-muted shadow-sm hover:shadow-md transition-shadow">
+								<div
+									class="group relative aspect-square overflow-hidden rounded-xl border-2 bg-muted shadow-sm transition-shadow hover:shadow-md"
+								>
 									<img
 										src={imagePreviews[index]}
 										alt={image.name}
 										class="h-full w-full object-cover"
 									/>
-									<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
+									<div
+										class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 transition-opacity group-hover:opacity-100"
+									>
 										<div class="flex h-full flex-col items-center justify-end gap-2 p-3">
-											<p class="truncate w-full text-center text-xs text-white font-medium" title={image.name}>
+											<p
+												class="w-full truncate text-center text-xs font-medium text-white"
+												title={image.name}
+											>
 												{image.name}
 											</p>
 											<Button
@@ -276,7 +316,7 @@
 												variant="destructive"
 												onclick={() => removeImage(index)}
 												disabled={loading}
-												class="gap-1.5 w-full"
+												class="w-full gap-1.5"
 											>
 												<X class="h-3 w-3" />
 												Remove
@@ -289,11 +329,16 @@
 					</div>
 
 					<div class="flex flex-wrap gap-2 pt-2">
-						<Button onclick={onextract} disabled={loading} class="gap-2 flex-1 sm:flex-none">
+						<Button onclick={onextract} disabled={loading} class="flex-1 gap-2 sm:flex-none">
 							<Sparkles class="h-4 w-4" />
 							{loading ? 'Extracting...' : 'Extract Product Info'}
 						</Button>
-						<Button onclick={onassess} disabled={loading} variant="secondary" class="gap-2 flex-1 sm:flex-none">
+						<Button
+							onclick={onassess}
+							disabled={loading}
+							variant="secondary"
+							class="flex-1 gap-2 sm:flex-none"
+						>
 							<Sparkles class="h-4 w-4" />
 							{loading ? 'Assessing...' : 'Assess Directly'}
 						</Button>

@@ -1,19 +1,29 @@
 <script lang="ts">
 	import SkeenLogo from '$lib/assets/skeen.svg';
 	import * as Alert from '$lib/components/ui/alert';
+	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Tabs from '$lib/components/ui/tabs';
-	import { Sparkles, AlertCircle } from '@lucide/svelte';
+	import { Button } from '$lib/components/ui/button';
+	import { Sparkles, AlertCircle, User, Info } from '@lucide/svelte';
 	import type { BaseAIClient, Product, ProductAssessment } from '$lib/ai/base';
 	import ImageUpload from '$lib/components/custom/image-upload.svelte';
 	import ProductEntry from '$lib/components/custom/product-entry.svelte';
 	import ProductInfo from '$lib/components/custom/product-info.svelte';
 	import AssessmentResults from '$lib/components/custom/assessment-results.svelte';
 	import { historyStore } from '$lib/stores/history.svelte';
+	import { profileStore } from '$lib/stores/profile.svelte';
 	import type { PageData } from './$types';
+	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
+	import { resolveRoute } from '$app/paths';
 
 	let { data }: { data: PageData } = $props();
 
 	const aiClient = data.aiClient as BaseAIClient;
+
+	onMount(() => {
+		profileStore.load();
+	});
 
 	let images = $state<File[]>([]);
 	let loading = $state(false);
@@ -21,6 +31,7 @@
 	let product = $state<Product | null>(null);
 	let assessment = $state<ProductAssessment | null>(null);
 	let activeTab = $state('image');
+	let showProfilePrompt = $state(false);
 
 	let productEntryComponent = $state<ProductEntry | null>(null);
 
@@ -57,6 +68,12 @@
 			return;
 		}
 
+		// Check if user has a profile
+		if (!profileStore.isComplete) {
+			showProfilePrompt = true;
+			return;
+		}
+
 		loading = true;
 		error = null;
 		assessment = null;
@@ -69,7 +86,7 @@
 
 			// Now assess the product
 			if (product) {
-				assessment = await aiClient.assessProduct(product);
+				assessment = await aiClient.assessProduct(product, profileStore.data);
 
 				// Save to history with deep clone to ensure serializability
 				if (assessment) {
@@ -122,7 +139,40 @@
 		error = null;
 		productEntryComponent?.reset();
 	}
+
+	function goToProfile() {
+		goto(resolveRoute('/profile'));
+	}
 </script>
+
+<!-- Profile Prompt Dialog -->
+{#if showProfilePrompt}
+	<Dialog.Root bind:open={showProfilePrompt}>
+		<Dialog.Content class="sm:max-w-md">
+			<Dialog.Header>
+				<div class="mb-4 flex justify-center">
+					<div class="rounded-full bg-primary/10 p-4">
+						<User class="h-8 w-8 text-primary" />
+					</div>
+				</div>
+				<Dialog.Title class="text-center text-xl">Complete Your Profile First</Dialog.Title>
+				<Dialog.Description class="text-center">
+					To get personalized skincare assessments tailored to your unique skin needs, please
+					complete your profile first.
+				</Dialog.Description>
+			</Dialog.Header>
+			<Dialog.Footer class="flex-col gap-2 sm:flex-col">
+				<Button onclick={goToProfile} class="w-full gap-2">
+					<User class="h-4 w-4" />
+					Complete Profile
+				</Button>
+				<Button variant="ghost" onclick={() => (showProfilePrompt = false)} class="w-full">
+					Maybe Later
+				</Button>
+			</Dialog.Footer>
+		</Dialog.Content>
+	</Dialog.Root>
+{/if}
 
 <div class="container mx-auto max-w-5xl p-4 sm:p-6 lg:p-8">
 	<!-- Hero Section -->
@@ -140,6 +190,23 @@
 			instant, science-backed assessments.
 		</p>
 	</div>
+
+	<!-- Profile Incomplete Banner -->
+	{#if profileStore.initialized && !profileStore.isComplete}
+		<Alert.Root class="mb-6 border-blue-500/50 bg-blue-500/10">
+			<Info class="h-4 w-4 text-blue-600" />
+			<Alert.Title>Complete your profile for personalized assessments</Alert.Title>
+			<Alert.Description class="flex items-center justify-between gap-4">
+				<span>
+					Get tailored skincare recommendations based on your skin type, concerns, and preferences.
+				</span>
+				<Button variant="outline" size="sm" onclick={goToProfile} class="shrink-0 gap-2">
+					<User class="h-3.5 w-3.5" />
+					Complete Profile
+				</Button>
+			</Alert.Description>
+		</Alert.Root>
+	{/if}
 
 	<!-- Tabs for Manual Input and Image Upload -->
 	<Tabs.Root bind:value={activeTab} class="mb-8">
