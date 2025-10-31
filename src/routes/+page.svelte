@@ -1,7 +1,9 @@
 <script lang="ts">
 	import * as Alert from '$lib/components/ui/alert';
+	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Tabs from '$lib/components/ui/tabs';
-	import { Sparkles, AlertCircle } from '@lucide/svelte';
+	import { Button } from '$lib/components/ui/button';
+	import { Sparkles, AlertCircle, User } from '@lucide/svelte';
 	import type { BaseAIClient, Product, ProductAssessment } from '$lib/ai/base';
 	import ImageUpload from '$lib/components/custom/image-upload.svelte';
 	import ProductEntry from '$lib/components/custom/product-entry.svelte';
@@ -11,6 +13,8 @@
 	import { profileStore } from '$lib/stores/profile.svelte';
 	import type { PageData } from './$types';
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
+	import { resolveRoute } from '$app/paths';
 
 	let { data }: { data: PageData } = $props();
 
@@ -26,6 +30,7 @@
 	let product = $state<Product | null>(null);
 	let assessment = $state<ProductAssessment | null>(null);
 	let activeTab = $state('image');
+	let showProfilePrompt = $state(false);
 
 	let productEntryComponent = $state<ProductEntry | null>(null);
 
@@ -59,6 +64,12 @@
 	async function assessProduct() {
 		if (!product && images.length === 0) {
 			error = 'Please extract product information first or upload images';
+			return;
+		}
+
+		// Check if user has a profile
+		if (!profileStore.isComplete) {
+			showProfilePrompt = true;
 			return;
 		}
 
@@ -127,7 +138,40 @@
 		error = null;
 		productEntryComponent?.reset();
 	}
+
+	function goToProfile() {
+		goto(resolveRoute('/profile'));
+	}
 </script>
+
+<!-- Profile Prompt Dialog -->
+{#if showProfilePrompt}
+	<Dialog.Root bind:open={showProfilePrompt}>
+		<Dialog.Content class="sm:max-w-md">
+			<Dialog.Header>
+				<div class="mb-4 flex justify-center">
+					<div class="rounded-full bg-primary/10 p-4">
+						<User class="h-8 w-8 text-primary" />
+					</div>
+				</div>
+				<Dialog.Title class="text-center text-xl">Complete Your Profile First</Dialog.Title>
+				<Dialog.Description class="text-center">
+					To get personalized skincare assessments tailored to your unique skin needs, please
+					complete your profile first.
+				</Dialog.Description>
+			</Dialog.Header>
+			<Dialog.Footer class="flex-col gap-2 sm:flex-col">
+				<Button onclick={goToProfile} class="w-full gap-2">
+					<User class="h-4 w-4" />
+					Complete Profile
+				</Button>
+				<Button variant="ghost" onclick={() => (showProfilePrompt = false)} class="w-full">
+					Maybe Later
+				</Button>
+			</Dialog.Footer>
+		</Dialog.Content>
+	</Dialog.Root>
+{/if}
 
 <div class="container mx-auto max-w-5xl p-4 sm:p-6 lg:p-8">
 	<!-- Hero Section -->
