@@ -14,9 +14,11 @@
 		FileText,
 		FlaskConical,
 		Image as ImageIcon,
-		Trash2
+		Trash2,
+		SwitchCamera
 	} from '@lucide/svelte';
 	import type { Product } from '$lib/ai/base';
+	import { onMount } from 'svelte';
 
 	interface Props {
 		product: Product | null;
@@ -43,6 +45,15 @@
 	let ingredientsText = $state('');
 	let fileInput = $state<HTMLInputElement | null>(null);
 
+	// Camera state
+	let videoElement = $state<HTMLVideoElement | null>(null);
+	let canvasElement = $state<HTMLCanvasElement | null>(null);
+	let stream = $state<MediaStream | null>(null);
+	let isCameraActive = $state(false);
+	let cameraError = $state<string | null>(null);
+	let facingMode = $state<'user' | 'environment'>('environment');
+	let videoReady = $state(false);
+
 	// Update form when product changes
 	$effect(() => {
 		if (product) {
@@ -59,6 +70,104 @@
 			imagePreviews.forEach((url) => URL.revokeObjectURL(url));
 		};
 	});
+
+	onMount(() => {
+		return () => {
+			// Cleanup camera stream on unmount
+			if (stream) {
+				stream.getTracks().forEach((track) => track.stop());
+			}
+		};
+	});
+
+	async function startCamera() {
+		try {
+			cameraError = null;
+			videoReady = false;
+
+			// Stop any existing stream first
+			if (stream) {
+				stream.getTracks().forEach((track) => track.stop());
+			}
+
+			const mediaStream = await navigator.mediaDevices.getUserMedia({
+				video: {
+					facingMode: { ideal: facingMode }
+				},
+				audio: false
+			});
+
+			stream = mediaStream;
+			isCameraActive = true;
+
+			// Wait for next tick to ensure videoElement is bound
+			await new Promise((resolve) => setTimeout(resolve, 100));
+
+			if (videoElement && stream) {
+				videoElement.srcObject = stream;
+				videoElement.onloadedmetadata = async () => {
+					try {
+						await videoElement?.play();
+						videoReady = true;
+					} catch (err) {
+						console.error('Error playing video:', err);
+						cameraError = 'Could not start video playback.';
+					}
+				};
+			}
+		} catch (err) {
+			console.error('Error accessing camera:', err);
+			cameraError = 'Unable to access camera. Please check permissions.';
+			isCameraActive = false;
+		}
+	}
+
+	function stopCamera() {
+		if (stream) {
+			stream.getTracks().forEach((track) => track.stop());
+			stream = null;
+		}
+		if (videoElement) {
+			videoElement.srcObject = null;
+		}
+		isCameraActive = false;
+		videoReady = false;
+	}
+
+	function toggleCamera() {
+		facingMode = facingMode === 'user' ? 'environment' : 'user';
+		if (isCameraActive) {
+			stopCamera();
+			startCamera();
+		}
+	}
+
+	function capturePhoto() {
+		if (!videoElement || !canvasElement) return;
+
+		const context = canvasElement.getContext('2d');
+		if (!context) return;
+
+		// Set canvas dimensions to match video
+		canvasElement.width = videoElement.videoWidth;
+		canvasElement.height = videoElement.videoHeight;
+
+		// Draw the current video frame to canvas
+		context.drawImage(videoElement, 0, 0);
+
+		// Convert canvas to blob and create file
+		canvasElement.toBlob(
+			(blob) => {
+				if (blob) {
+					const timestamp = new Date().getTime();
+					const file = new File([blob], `camera-${timestamp}.jpg`, { type: 'image/jpeg' });
+					images = [...images, file];
+				}
+			},
+			'image/jpeg',
+			0.95
+		);
+	}
 
 	function handleFileSelect(event: Event) {
 		const target = event.target as HTMLInputElement;
@@ -97,6 +206,10 @@
 		description = '';
 		ingredientsText = '';
 		activeTab = 'image';
+		stopCamera();
+		if (fileInput) {
+			fileInput.value = '';
+		}
 	}
 </script>
 
@@ -125,55 +238,143 @@
 			<!-- Image Upload Tab -->
 			<Tabs.Content value="image">
 				<div class="space-y-4">
-					<!-- File Input -->
-					<div>
-						<Label>Upload Images</Label>
-						<input
-							bind:this={fileInput}
-							type="file"
-							accept="image/*"
-							multiple
-							onchange={handleFileSelect}
-							class="hidden"
-						/>
-						<Button
-							variant="outline"
-							onclick={() => fileInput?.click()}
-							class="mt-2 w-full gap-2"
-							disabled={loading}
-						>
-							<Upload class="h-4 w-4" />
-							Choose Files
-						</Button>
+					<!-- File Upload and Camera Buttons -->
+					<div class="grid gap-3 sm:grid-cols-2">
+						<div class="space-y-2">
+							<Label class="text-sm font-semibold">Choose from Gallery</Label>
+							<input
+								bind:this={fileInput}
+								type="file"
+								accept="image/*"
+								multiple
+								onchange={handleFileSelect}
+								class="hidden"
+							/>
+							<Button
+								variant="outline"
+								onclick={() => fileInput?.click()}
+								class="w-full gap-2"
+								disabled={loading}
+							>
+								<Upload class="h-4 w-4" />
+								Choose Files
+							</Button>
+						</div>
+
+						<div class="space-y-2">
+							<Label class="text-sm font-semibold">Live Camera</Label>
+							<Button
+								onclick={() => (isCameraActive ? stopCamera() : startCamera())}
+								variant="outline"
+								class="w-full gap-2"
+								disabled={loading}
+							>
+								<Camera class="h-4 w-4" />
+								{isCameraActive ? 'Close Camera' : 'Open Camera'}
+							</Button>
+						</div>
 					</div>
+
+					<!-- Camera Error -->
+					{#if cameraError}
+						<div
+							class="flex items-start gap-2 rounded-lg border-2 border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive"
+						>
+							<X class="mt-0.5 h-4 w-4 flex-shrink-0" />
+							<span>{cameraError}</span>
+						</div>
+					{/if}
+
+					<!-- Camera View -->
+					{#if isCameraActive}
+						<div class="space-y-3">
+							<div
+								class="relative aspect-[4/3] overflow-hidden rounded-lg border-2 bg-muted shadow-inner"
+							>
+								{#if !videoReady}
+									<div class="absolute inset-0 flex items-center justify-center bg-black/90">
+										<div class="flex flex-col items-center gap-2">
+											<Camera class="h-6 w-6 animate-pulse text-white" />
+											<p class="text-xs text-white">Loading camera...</p>
+										</div>
+									</div>
+								{/if}
+								<video
+									bind:this={videoElement}
+									autoplay
+									playsinline
+									muted
+									class="h-full w-full object-cover"
+								></video>
+								<canvas bind:this={canvasElement} class="hidden"></canvas>
+							</div>
+
+							<div class="flex flex-wrap gap-2">
+								<Button
+									onclick={capturePhoto}
+									disabled={loading || !videoReady}
+									size="sm"
+									class="flex-1 gap-2"
+								>
+									<Camera class="h-3.5 w-3.5" />
+									Capture
+								</Button>
+								<Button
+									onclick={toggleCamera}
+									variant="outline"
+									size="sm"
+									disabled={loading || !videoReady}
+									class="gap-2"
+								>
+									<SwitchCamera class="h-3.5 w-3.5" />
+									Switch
+								</Button>
+								{#if !loading}
+									<Button onclick={stopCamera} variant="outline" size="sm" class="gap-2">
+										<X class="h-3.5 w-3.5" />
+										Close
+									</Button>
+								{/if}
+							</div>
+						</div>
+					{/if}
 
 					<!-- Image Previews -->
 					{#if images.length > 0}
-						<div class="grid grid-cols-2 gap-2">
-							{#each imagePreviews as preview, i (i)}
-								<div class="relative">
-									<img
-										src={preview}
-										alt="Preview {i + 1}"
-										class="h-24 w-full rounded object-cover"
-									/>
-									<Button
-										variant="destructive"
-										size="sm"
-										onclick={() => removeImage(i)}
-										class="absolute top-1 right-1 h-6 w-6 p-0"
-										disabled={loading}
-									>
-										<X class="h-3 w-3" />
-									</Button>
-								</div>
-							{/each}
-						</div>
+						<div class="space-y-3">
+							<div class="flex items-center gap-2">
+								<Badge variant="secondary" class="gap-1.5">
+									<ImageIcon class="h-3 w-3" />
+									{images.length}
+									{images.length === 1 ? 'image' : 'images'}
+								</Badge>
+							</div>
+							<div class="grid grid-cols-2 gap-2">
+								{#each imagePreviews as preview, i (i)}
+									<div class="relative">
+										<img
+											src={preview}
+											alt="Preview {i + 1}"
+											class="h-24 w-full rounded object-cover"
+										/>
+										<Button
+											variant="destructive"
+											size="sm"
+											onclick={() => removeImage(i)}
+											class="absolute top-1 right-1 h-6 w-6 p-0"
+											disabled={loading}
+										>
+											<X class="h-3 w-3" />
+										</Button>
+									</div>
+								{/each}
+							</div>
 
-						<Button onclick={handleExtractFromImages} disabled={loading} class="w-full gap-2">
-							<ImageIcon class="h-4 w-4" />
-							{loading ? 'Extracting...' : 'Extract Product Info'}
-						</Button>
+							<Button onclick={handleExtractFromImages} disabled={loading} class="w-full gap-2">
+								<ImageIcon class="h-4 w-4" />
+								{loading ? 'Extracting...' : 'Extract Product Info'}
+							</Button>
+						</div>
 					{/if}
 				</div>
 			</Tabs.Content>
