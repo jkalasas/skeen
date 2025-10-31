@@ -1,5 +1,10 @@
-import { GoogleGenAI, Type, type Content, type GenerateContentConfig } from '@google/genai';
-
+import {
+	getGenerativeModel,
+	type GenerativeModel,
+	type ModelParams,
+	type SchemaRequest,
+	SchemaType
+} from 'firebase/ai';
 import {
 	BaseAIClient,
 	type Product,
@@ -9,13 +14,7 @@ import {
 } from './base';
 import { imageFileToBase64 } from '$lib/image';
 import type { UserProfile } from '$lib/types/profile';
-
-const BASE_CONFIG: GenerateContentConfig = {
-	thinkingConfig: {
-		thinkingBudget: 5000
-	},
-	responseMimeType: 'application/json'
-};
+import { getAIInstance } from '$lib/firebase';
 
 function buildSystemInstruction(userProfile?: UserProfile | null): string {
 	let instruction = 'Provide a detailed assessment of the skincare product.';
@@ -38,202 +37,198 @@ function buildSystemInstruction(userProfile?: UserProfile | null): string {
 	return instruction;
 }
 
-const ASSESS_PRODUCT_INFO_SCHEMA = {
-	type: Type.OBJECT,
+const ASSESS_PRODUCT_INFO_SCHEMA: SchemaRequest = {
+	type: SchemaType.OBJECT,
 	properties: {
 		pros: {
-			type: Type.ARRAY,
+			type: SchemaType.ARRAY,
 			items: {
-				type: Type.STRING
+				type: SchemaType.STRING
 			}
 		},
 		cons: {
-			type: Type.ARRAY,
+			type: SchemaType.ARRAY,
 			items: {
-				type: Type.STRING
+				type: SchemaType.STRING
 			}
 		},
 		score: {
-			type: Type.NUMBER,
+			type: SchemaType.NUMBER,
 			description: 'A score from 0 to 10 evaluating the product overall.'
 		}
 	}
 };
 
-const EXTRACT_PRODUCT_INFO_CONFIG: GenerateContentConfig = {
-	...BASE_CONFIG,
-	systemInstruction: 'Extract the following fields about the skincare product.',
-	responseSchema: {
-		type: Type.OBJECT,
-		properties: {
-			name: {
-				type: Type.STRING
-			},
-			description: {
-				type: Type.STRING
-			},
-			ingredients: {
-				type: Type.ARRAY,
-				items: {
-					type: Type.STRING
-				}
+const EXTRACT_PRODUCT_INFO_SCHEMA: SchemaRequest = {
+	type: SchemaType.OBJECT,
+	properties: {
+		name: {
+			type: SchemaType.STRING
+		},
+		description: {
+			type: SchemaType.STRING
+		},
+		ingredients: {
+			type: SchemaType.ARRAY,
+			items: {
+				type: SchemaType.STRING
 			}
 		}
-	},
-	temperature: 0
+	}
 };
 
-const COMPARE_PRODUCTS_SCHEMA = {
-	type: Type.OBJECT,
+const COMPARE_PRODUCTS_SCHEMA: SchemaRequest = {
+	type: SchemaType.OBJECT,
 	properties: {
 		areSimilar: {
-			type: Type.BOOLEAN,
+			type: SchemaType.BOOLEAN,
 			description:
 				'Whether the products are similar enough to compare (e.g., both moisturizers, both cleansers)'
 		},
 		reason: {
-			type: Type.STRING,
+			type: SchemaType.STRING,
 			description: 'Explanation of similarity or why they cannot be compared'
 		},
 		productAnalyses: {
-			type: Type.ARRAY,
+			type: SchemaType.ARRAY,
 			items: {
-				type: Type.OBJECT,
+				type: SchemaType.OBJECT,
 				properties: {
 					name: {
-						type: Type.STRING,
+						type: SchemaType.STRING,
 						description: 'Product name'
 					},
 					strengths: {
-						type: Type.ARRAY,
-						items: { type: Type.STRING }
+						type: SchemaType.ARRAY,
+						items: { type: SchemaType.STRING }
 					},
 					weaknesses: {
-						type: Type.ARRAY,
-						items: { type: Type.STRING }
+						type: SchemaType.ARRAY,
+						items: { type: SchemaType.STRING }
 					},
 					score: {
-						type: Type.NUMBER
+						type: SchemaType.NUMBER
 					}
 				}
 			}
 		},
 		recommendation: {
-			type: Type.STRING,
+			type: SchemaType.STRING,
 			description: 'Which product(s) are recommended and why'
 		}
 	}
 };
 
-const ASSESS_COMBINATION_SCHEMA = {
-	type: Type.OBJECT,
+const ASSESS_COMBINATION_SCHEMA: SchemaRequest = {
+	type: SchemaType.OBJECT,
 	properties: {
 		isCompatible: {
-			type: Type.BOOLEAN,
+			type: SchemaType.BOOLEAN,
 			description: 'Whether the products can be used together safely'
 		},
 		compatibilityScore: {
-			type: Type.NUMBER,
+			type: SchemaType.NUMBER,
 			description: 'A score from 0 to 10 evaluating how well the products work together'
 		},
 		synergies: {
-			type: Type.ARRAY,
-			items: { type: Type.STRING },
+			type: SchemaType.ARRAY,
+			items: { type: SchemaType.STRING },
 			description: 'Ways the products complement each other'
 		},
 		conflicts: {
-			type: Type.ARRAY,
-			items: { type: Type.STRING },
+			type: SchemaType.ARRAY,
+			items: { type: SchemaType.STRING },
 			description: 'Potential issues or conflicts when using together'
 		},
 		recommendations: {
-			type: Type.ARRAY,
-			items: { type: Type.STRING },
+			type: SchemaType.ARRAY,
+			items: { type: SchemaType.STRING },
 			description: 'Recommendations for using the products together'
 		}
 	}
 };
 
-export class GeminiAIClient extends BaseAIClient {
-	private client: GoogleGenAI;
+export class FirebaseAIClient extends BaseAIClient {
+	private getModel(systemInstruction?: string, responseSchema?: SchemaRequest): GenerativeModel {
+		const ai = getAIInstance();
+		const config: ModelParams = {
+			model: 'gemini-1.5-flash'
+		};
 
-	constructor(apiKey: string) {
-		super();
+		if (systemInstruction) {
+			config.systemInstruction = systemInstruction;
+		}
 
-		this.client = new GoogleGenAI({ apiKey });
-	}
+		if (responseSchema) {
+			config.generationConfig = {
+				responseMimeType: 'application/json',
+				responseSchema,
+				temperature: 0.3
+			};
+		} else {
+			config.generationConfig = {
+				responseMimeType: 'application/json'
+			};
+		}
 
-	private buildContent(data: Record<string, any>): Content[] {
-		return [
-			{
-				role: 'user',
-				parts: [{ text: JSON.stringify(data) }]
-			}
-		];
-	}
-
-	private async buildContentFromImages(images: File[]): Promise<Content[]> {
-		return [
-			{
-				role: 'user',
-				parts: [
-					...(await Promise.all(
-						images.map(async (image) => ({
-							inlineData: {
-								mimeType: 'image/jpeg',
-								data: await imageFileToBase64(image)
-							}
-						}))
-					))
-				]
-			}
-		];
+		return getGenerativeModel(ai, config);
 	}
 
 	async assessProduct(
 		product: Product,
 		userProfile?: UserProfile | null
 	): Promise<ProductAssessment> {
-		const response = await this.client.models.generateContent({
-			model: 'gemini-flash-lite-latest',
-			contents: this.buildContent(product),
-			config: {
-				...BASE_CONFIG,
-				systemInstruction: buildSystemInstruction(userProfile),
-				responseSchema: ASSESS_PRODUCT_INFO_SCHEMA,
-				temperature: 0.3
-			}
-		});
+		const model = this.getModel(buildSystemInstruction(userProfile), ASSESS_PRODUCT_INFO_SCHEMA);
 
-		return JSON.parse(response.text as string) as ProductAssessment;
+		const result = await model.generateContent(JSON.stringify(product));
+		const response = result.response;
+		const text = response.text();
+
+		return JSON.parse(text) as ProductAssessment;
 	}
 
 	async assessProductFromImages(
 		images: File[],
 		userProfile?: UserProfile | null
 	): Promise<ProductAssessment> {
-		const response = await this.client.models.generateContent({
-			model: 'gemini-flash-lite-latest',
-			contents: await this.buildContentFromImages(images),
-			config: {
-				...BASE_CONFIG,
-				systemInstruction: buildSystemInstruction(userProfile),
-				responseSchema: ASSESS_PRODUCT_INFO_SCHEMA,
-				temperature: 0.3
-			}
-		});
+		const model = this.getModel(buildSystemInstruction(userProfile), ASSESS_PRODUCT_INFO_SCHEMA);
 
-		return JSON.parse(response.text as string) as ProductAssessment;
+		const imageParts = await Promise.all(
+			images.map(async (image) => ({
+				inlineData: {
+					mimeType: image.type || 'image/jpeg',
+					data: await imageFileToBase64(image)
+				}
+			}))
+		);
+
+		const result = await model.generateContent(imageParts);
+		const response = result.response;
+		const text = response.text();
+
+		return JSON.parse(text) as ProductAssessment;
 	}
 
 	async extractProductInfo(images: File[]): Promise<Product> {
-		const response = await this.client.models.generateContent({
-			model: 'gemini-flash-lite-latest',
-			contents: await this.buildContentFromImages(images),
-			config: EXTRACT_PRODUCT_INFO_CONFIG
-		});
+		const model = this.getModel(
+			'Extract the following fields about the skincare product.',
+			EXTRACT_PRODUCT_INFO_SCHEMA
+		);
 
-		return JSON.parse(response.text as string) as Product;
+		const imageParts = await Promise.all(
+			images.map(async (image) => ({
+				inlineData: {
+					mimeType: image.type || 'image/jpeg',
+					data: await imageFileToBase64(image)
+				}
+			}))
+		);
+
+		const result = await model.generateContent(imageParts);
+		const response = result.response;
+		const text = response.text();
+
+		return JSON.parse(text) as Product;
 	}
 
 	async compareProducts(
@@ -256,18 +251,13 @@ If they are similar, provide a detailed comparison including strengths, weakness
 			}
 		}
 
-		const response = await this.client.models.generateContent({
-			model: 'gemini-flash-lite-latest',
-			contents: this.buildContent({ products }),
-			config: {
-				...BASE_CONFIG,
-				systemInstruction,
-				responseSchema: COMPARE_PRODUCTS_SCHEMA,
-				temperature: 0.3
-			}
-		});
+		const model = this.getModel(systemInstruction, COMPARE_PRODUCTS_SCHEMA);
 
-		return JSON.parse(response.text as string) as ProductComparison;
+		const result = await model.generateContent(JSON.stringify({ products }));
+		const response = result.response;
+		const text = response.text();
+
+		return JSON.parse(text) as ProductComparison;
 	}
 
 	async assessProductCombination(
@@ -290,17 +280,12 @@ Provide specific recommendations for how to use them together safely and effecti
 			}
 		}
 
-		const response = await this.client.models.generateContent({
-			model: 'gemini-flash-lite-latest',
-			contents: this.buildContent({ products }),
-			config: {
-				...BASE_CONFIG,
-				systemInstruction,
-				responseSchema: ASSESS_COMBINATION_SCHEMA,
-				temperature: 0.3
-			}
-		});
+		const model = this.getModel(systemInstruction, ASSESS_COMBINATION_SCHEMA);
 
-		return JSON.parse(response.text as string) as ProductCombination;
+		const result = await model.generateContent(JSON.stringify({ products }));
+		const response = result.response;
+		const text = response.text();
+
+		return JSON.parse(text) as ProductCombination;
 	}
 }
