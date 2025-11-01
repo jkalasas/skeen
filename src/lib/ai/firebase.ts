@@ -16,7 +16,7 @@ import { imageFileToBase64 } from '$lib/image';
 import type { UserProfile } from '$lib/types/profile';
 import { getAIInstance } from '$lib/firebase';
 
-const DEFAULT_MODEL = 'gemini-1.5-flash';
+const DEFAULT_MODEL = 'gemini-flash-latest';
 
 function buildSystemInstruction(userProfile?: UserProfile | null): string {
 	let instruction = 'Provide a detailed assessment of the skincare product.';
