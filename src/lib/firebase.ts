@@ -1,5 +1,5 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app';
-import { getAI, type AI } from 'firebase/ai';
+import { getAI, type AI, GoogleAIBackend } from 'firebase/ai';
 
 const firebaseConfig = {
 	apiKey: import.meta.env.PUBLIC_FIREBASE_API_KEY,
@@ -43,7 +43,8 @@ export function getFirebaseApp(): FirebaseApp {
 export function getAIInstance(): AI {
 	if (!ai) {
 		const app = getFirebaseApp();
-		ai = getAI(app);
+		// Use GoogleAIBackend to connect to Gemini Developer API instead of Vertex AI
+		ai = getAI(app, { backend: new GoogleAIBackend() });
 	}
 	return ai;
 }
