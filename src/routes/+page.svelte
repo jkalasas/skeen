@@ -19,6 +19,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolveRoute } from '$app/paths';
+	import { toast } from 'svelte-sonner';
 
 	let { data }: { data: PageData } = $props();
 
@@ -32,21 +33,12 @@
 	let activeTab = $state('image');
 	let showProfilePrompt = $state(false);
 	let showProductSearch = $state(false);
-	let showSaveSuccess = $state(false);
 
 	let productEntryComponent = $state<ProductEntry | null>(null);
-	let saveSuccessTimeout: number | undefined = undefined;
 
 	onMount(() => {
 		profileStore.load();
 		productsStore.load();
-
-		return () => {
-			// Clear timeout on unmount
-			if (saveSuccessTimeout !== undefined) {
-				clearTimeout(saveSuccessTimeout);
-			}
-		};
 	});
 
 	function handleImagesChange() {
@@ -161,27 +153,13 @@
 	async function saveProductToCache() {
 		if (!product) return;
 
-		// Clear any existing timeout
-		if (saveSuccessTimeout !== undefined) {
-			clearTimeout(saveSuccessTimeout);
-		}
+		const promise = productsStore.add(product);
 
-		try {
-			// Check if product with same name already exists
-			const existing = productsStore.findByName(product.name);
-			if (existing) {
-				error = 'A product with this name already exists in your collection';
-				return;
-			}
-
-			await productsStore.add(product);
-			showSaveSuccess = true;
-			saveSuccessTimeout = window.setTimeout(() => {
-				showSaveSuccess = false;
-			}, 3000);
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to save product';
-		}
+		toast.promise(promise, {
+			loading: 'Saving product...',
+			success: 'Product saved to your collection!',
+			error: (err) => err.message || 'Failed to save product'
+		});
 	}
 
 	function handleProductSelect(selectedProduct: Product) {
@@ -320,17 +298,6 @@
 				<AlertCircle class="h-4 w-4" />
 				<Alert.Title>Error</Alert.Title>
 				<Alert.Description>{error}</Alert.Description>
-			</Alert.Root>
-		{/if}
-
-		<!-- Save Success Message -->
-		{#if showSaveSuccess}
-			<Alert.Root class="mb-6 border-green-500/50 bg-green-500/10">
-				<Database class="h-4 w-4 text-green-600" />
-				<Alert.Title>Product Saved!</Alert.Title>
-				<Alert.Description>
-					The product has been saved to your collection and can now be used in assessments.
-				</Alert.Description>
 			</Alert.Root>
 		{/if}
 

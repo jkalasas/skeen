@@ -16,6 +16,7 @@
 	import { goto } from '$app/navigation';
 	import { resolveRoute } from '$app/paths';
 	import { PUBLIC_MAX_MULTI_COUNT } from '$env/static/public';
+	import { toast } from 'svelte-sonner';
 
 	let { data }: { data: PageData } = $props();
 
@@ -51,17 +52,16 @@
 	}
 
 	async function handleExtractFromImages(index: number, images: File[]) {
-		loading = true;
-		error = null;
+		const promise = aiClient.extractProductInfo(images);
 
-		try {
-			const extractedProduct = await aiClient.extractProductInfo(images);
-			products[index] = extractedProduct;
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to extract product information';
-		} finally {
-			loading = false;
-		}
+		toast.promise(promise, {
+			loading: 'Extracting product info...',
+			success: (product) => {
+				products[index] = product;
+				return `Extracted: ${product.name}`;
+			},
+			error: 'Failed to extract product info'
+		});
 	}
 
 	function handleManualSubmit(
