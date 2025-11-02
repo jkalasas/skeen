@@ -20,7 +20,6 @@ export interface HistoryEntry {
 	product: Product;
 	assessment: ProductAssessment;
 	timestamp: number;
-	imageData?: string; // Base64 encoded image
 	userId: string;
 }
 

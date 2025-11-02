@@ -49,12 +49,6 @@
 
 <Card.Root class="overflow-hidden transition-shadow hover:shadow-lg">
 	<div class="flex flex-col gap-4 sm:flex-row">
-		{#if entry.imageData}
-			<div class="h-48 w-full flex-shrink-0 sm:h-auto sm:w-32">
-				<img src={entry.imageData} alt={entry.product.name} class="h-full w-full object-cover" />
-			</div>
-		{/if}
-
 		<div class="flex-1 p-4 sm:p-6">
 			<div class="mb-3 flex items-start justify-between gap-4">
 				<div class="flex-1">

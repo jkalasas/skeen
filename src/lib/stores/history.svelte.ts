@@ -33,15 +33,14 @@ class HistoryStore {
 		}
 	}
 
-	async add(product: Product, assessment: ProductAssessment, imageData?: string) {
+	async add(product: Product, assessment: ProductAssessment) {
 		this._error = null;
 
 		try {
 			const entry: Omit<HistoryEntry, 'id' | 'userId'> = {
 				product,
 				assessment,
-				timestamp: Date.now(),
-				imageData
+				timestamp: Date.now()
 			};
 
 			const id = await firestoreHistoryDB.addEntry(entry);
