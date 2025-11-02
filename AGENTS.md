@@ -9,11 +9,13 @@ This is a SvelteKit project for a web application called "skeen". Based on the d
 - **Styling:** Tailwind CSS
 - **UI Components:** shadcn-svelte
 - **AI:** Google Gemini (@google/genai)
+- **Authentication:** Firebase Authentication (Google Sign-in)
+- **Database:** Cloud Firestore
 - **Bundler:** Vite
 
 ## Architecture
 
-The application is structured as a standard static SvelteKit project.
+The application is structured as a standard static SvelteKit project with Firebase integration.
 
 - `src/routes`: Contains the application's pages and layouts.
 - `src/lib`: Contains reusable libraries and components.
@@ -23,6 +25,15 @@ The application is structured as a standard static SvelteKit project.
 - `src/lib/components`: Contains reusable components
   - `ui`: Contains the UI components from `shadcn-svelte`.
   - `custom`: Contains the custom UI components made for this app.
+- `src/lib/db`: Contains database modules for Firestore
+  - `firestore-history.ts`: Manages assessment history in Firestore
+  - `firestore-products.ts`: Manages saved products in Firestore
+  - `firestore-profile.ts`: Manages user profiles in Firestore
+- `src/lib/stores`: Contains Svelte stores
+  - `auth.svelte.ts`: Manages authentication state
+  - `history.svelte.ts`: Manages assessment history
+  - `products.svelte.ts`: Manages product collection
+  - `profile.svelte.ts`: Manages user profile
 
 ## UI Components
 
