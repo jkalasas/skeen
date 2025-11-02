@@ -21,6 +21,9 @@
 	import type { Product } from '$lib/ai/base';
 	import { onMount } from 'svelte';
 
+	// Delay before auto-extracting product info to allow UI to update
+	const AUTO_EXTRACT_DELAY = 100;
+
 	interface Props {
 		product: Product | null;
 		index: number;
@@ -170,7 +173,7 @@
 						if (images.length > 0) {
 							handleExtractFromImages();
 						}
-					}, 100);
+					}, AUTO_EXTRACT_DELAY);
 				}
 			},
 			'image/jpeg',
@@ -187,7 +190,7 @@
 				if (images.length > 0) {
 					handleExtractFromImages();
 				}
-			}, 100);
+			}, AUTO_EXTRACT_DELAY);
 		}
 	}
 
