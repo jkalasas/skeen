@@ -1,5 +1,6 @@
 import { firestoreProductsDB, type StoredProduct } from '$lib/db/firestore-products';
 import type { Product } from '$lib/ai/base';
+import { authStore } from './auth.svelte';
 
 class ProductsStore {
 	private products = $state<StoredProduct[]>([]);
@@ -68,7 +69,8 @@ class ProductsStore {
 			const id = await firestoreProductsDB.addProduct(sanitizedProduct);
 
 			// Add to the beginning of the array (most recent first)
-			this.products = [{ ...sanitizedProduct, id, userId: '' }, ...this.products];
+			const userId = authStore.currentUser?.uid || '';
+			this.products = [{ ...sanitizedProduct, id, userId }, ...this.products];
 
 			return id;
 		} catch (err) {

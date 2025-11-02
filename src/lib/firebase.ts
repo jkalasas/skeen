@@ -4,14 +4,22 @@ import { getAuth, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 import { browser } from '$app/environment';
 
+// Access environment variables safely
+const getEnvVar = (key: string): string => {
+	if (browser && typeof window !== 'undefined') {
+		return (window as any).__env?.[key] || import.meta.env[key] || '';
+	}
+	return import.meta.env[key] || '';
+};
+
 // Firebase configuration
 const firebaseConfig = {
-	apiKey: import.meta.env.PUBLIC_FIREBASE_API_KEY,
-	authDomain: import.meta.env.PUBLIC_FIREBASE_AUTH_DOMAIN,
-	projectId: import.meta.env.PUBLIC_FIREBASE_PROJECT_ID,
-	storageBucket: import.meta.env.PUBLIC_FIREBASE_STORAGE_BUCKET,
-	messagingSenderId: import.meta.env.PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-	appId: import.meta.env.PUBLIC_FIREBASE_APP_ID
+	apiKey: getEnvVar('PUBLIC_FIREBASE_API_KEY'),
+	authDomain: getEnvVar('PUBLIC_FIREBASE_AUTH_DOMAIN'),
+	projectId: getEnvVar('PUBLIC_FIREBASE_PROJECT_ID'),
+	storageBucket: getEnvVar('PUBLIC_FIREBASE_STORAGE_BUCKET'),
+	messagingSenderId: getEnvVar('PUBLIC_FIREBASE_MESSAGING_SENDER_ID'),
+	appId: getEnvVar('PUBLIC_FIREBASE_APP_ID')
 };
 
 let app: FirebaseApp | null = null;

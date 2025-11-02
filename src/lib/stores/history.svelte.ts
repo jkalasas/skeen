@@ -1,5 +1,6 @@
 import { firestoreHistoryDB, type HistoryEntry } from '$lib/db/firestore-history';
 import type { Product, ProductAssessment } from '$lib/ai/base';
+import { authStore } from './auth.svelte';
 
 class HistoryStore {
 	private entries = $state<HistoryEntry[]>([]);
@@ -46,7 +47,8 @@ class HistoryStore {
 			const id = await firestoreHistoryDB.addEntry(entry);
 
 			// Add to the beginning of the array (most recent first)
-			this.entries = [{ ...entry, id, userId: '' }, ...this.entries];
+			const userId = authStore.currentUser?.uid || '';
+			this.entries = [{ ...entry, id, userId }, ...this.entries];
 		} catch (err) {
 			this._error = err instanceof Error ? err.message : 'Failed to save to history';
 			console.error('Failed to save history:', err);

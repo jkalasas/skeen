@@ -14,7 +14,7 @@
 	}
 </script>
 
-{#if authStore.loading}
+{#if !authStore.initialized || authStore.loading}
 	<div class="flex min-h-[50vh] items-center justify-center">
 		<div class="text-center">
 			<div class="mb-4 text-lg">Loading...</div>
