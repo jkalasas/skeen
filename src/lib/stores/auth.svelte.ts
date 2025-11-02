@@ -7,6 +7,7 @@ import {
 	type User
 } from 'firebase/auth';
 import { browser } from '$app/environment';
+import { profileStore } from './profile.svelte';
 
 class AuthStore {
 	private user = $state<User | null>(null);
@@ -34,8 +35,13 @@ class AuthStore {
 
 		const auth = getAuthInstance();
 
-		onAuthStateChanged(auth, (user) => {
+		onAuthStateChanged(auth, async (user) => {
 			this.user = user;
+			if (user) {
+				await profileStore.load();
+			} else {
+				await profileStore.clear();
+			}
 			this._loading = false;
 			this._initialized = true;
 		});

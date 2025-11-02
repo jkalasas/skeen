@@ -5,17 +5,12 @@
 	import { profileStore } from '$lib/stores/profile.svelte';
 	import type { UserProfile } from '$lib/types/profile';
 	import { CheckCircle2, User } from '@lucide/svelte';
-	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolveRoute } from '$app/paths';
 
 	let loading = $state(false);
 	let error = $state<string | null>(null);
 	let success = $state(false);
-
-	onMount(() => {
-		profileStore.load();
-	});
 
 	async function handleSubmit(profile: UserProfile) {
 		loading = true;
