@@ -215,15 +215,15 @@
 	<div class="container mx-auto max-w-5xl p-4 sm:p-6 lg:p-8">
 		<!-- Hero Section -->
 		<div
-			class="mb-8 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background p-8 sm:p-10"
+			class="mb-6 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background p-6 sm:p-8"
 		>
-			<div class="mb-4 flex items-center gap-3">
-				<div class="rounded-xl bg-primary/20 p-3">
-					<img src={SkeenLogo} alt="Skeen Logo" class="h-12 w-12" />
+			<div class="mb-3 flex items-center gap-3">
+				<div class="rounded-xl bg-primary/20 p-2.5">
+					<img src={SkeenLogo} alt="Skeen Logo" class="h-10 w-10" />
 				</div>
-				<h1 class="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">Skeen</h1>
+				<h1 class="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">Skeen</h1>
 			</div>
-			<p class="max-w-2xl text-lg text-muted-foreground">
+			<p class="max-w-2xl text-base text-muted-foreground">
 				Your AI-powered skincare product analyzer. Upload images or enter product details to get
 				instant, science-backed assessments.
 			</p>
@@ -231,7 +231,7 @@
 
 		<!-- Profile Incomplete Banner -->
 		{#if profileStore.initialized && !profileStore.isComplete}
-			<Alert.Root class="mb-6 border-blue-500/50 bg-blue-500/10">
+			<Alert.Root class="mb-4 border-blue-500/50 bg-blue-500/10">
 				<Info class="h-4 w-4 text-blue-600" />
 				<Alert.Title>Complete your profile for personalized assessments</Alert.Title>
 				<Alert.Description class="flex items-center justify-between gap-4">
@@ -248,14 +248,14 @@
 		{/if}
 
 		<!-- Tabs for Manual Input and Image Upload -->
-		<Tabs.Root bind:value={activeTab} class="mb-8">
+		<Tabs.Root bind:value={activeTab} class="mb-6">
 			<Tabs.List class="grid w-full grid-cols-2 bg-muted/50 p-1">
 				<Tabs.Trigger value="image" class="gap-2">📸 Image Upload</Tabs.Trigger>
 				<Tabs.Trigger value="productinfo" class="gap-2">✍️ Product Info</Tabs.Trigger>
 			</Tabs.List>
 
 			<!-- Search Products Button -->
-			<div class="mt-4 mb-4">
+			<div class="mt-3 mb-3">
 				<Button
 					onclick={() => (showProductSearch = true)}
 					variant="outline"
@@ -294,7 +294,7 @@
 
 		<!-- Error Display -->
 		{#if error}
-			<Alert.Root variant="destructive" class="mb-6 border-destructive/50">
+			<Alert.Root variant="destructive" class="mb-4 border-destructive/50">
 				<AlertCircle class="h-4 w-4" />
 				<Alert.Title>Error</Alert.Title>
 				<Alert.Description>{error}</Alert.Description>
@@ -303,8 +303,8 @@
 
 		<!-- Product Information -->
 		{#if product && !assessment}
-			<div class="mb-6">
-				<div class="mb-4 flex items-center justify-between">
+			<div class="mb-4">
+				<div class="mb-3 flex items-center justify-between">
 					<h2 class="text-xl font-semibold">Extracted Product Information</h2>
 					<Button
 						onclick={saveProductToCache}
@@ -326,7 +326,7 @@
 			<ProductInfo {product} />
 
 			<!-- Save to Collection Button under ProductInfo when assessment exists -->
-			<div class="mb-6 flex justify-end">
+			<div class="mb-4 flex justify-end">
 				<Button
 					onclick={saveProductToCache}
 					variant="outline"

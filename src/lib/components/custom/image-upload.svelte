@@ -329,18 +329,18 @@
 					</div>
 
 					<div class="flex flex-wrap gap-2 pt-2">
-						<Button onclick={onextract} disabled={loading} class="flex-1 gap-2 sm:flex-none">
+						<Button onclick={onassess} disabled={loading} class="flex-1 gap-2 sm:flex-none" size="lg">
 							<Sparkles class="h-4 w-4" />
-							{loading ? 'Extracting...' : 'Extract Product Info'}
+							{loading ? 'Assessing...' : 'Assess Product'}
 						</Button>
 						<Button
-							onclick={onassess}
+							onclick={onextract}
 							disabled={loading}
-							variant="secondary"
-							class="flex-1 gap-2 sm:flex-none"
+							variant="outline"
+							class="gap-2"
 						>
 							<Sparkles class="h-4 w-4" />
-							{loading ? 'Assessing...' : 'Assess Directly'}
+							{loading ? 'Extracting...' : 'Extract Only'}
 						</Button>
 						<Button onclick={handleReset} variant="outline" disabled={loading} class="gap-2">
 							<RefreshCw class="h-4 w-4" />

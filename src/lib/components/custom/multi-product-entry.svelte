@@ -165,6 +165,12 @@
 					const timestamp = new Date().getTime();
 					const file = new File([blob], `camera-${timestamp}.jpg`, { type: 'image/jpeg' });
 					images = [...images, file];
+					// Auto-extract after capture
+					setTimeout(() => {
+						if (images.length > 0) {
+							handleExtractFromImages();
+						}
+					}, 100);
 				}
 			},
 			'image/jpeg',
@@ -176,6 +182,12 @@
 		const target = event.target as HTMLInputElement;
 		if (target.files && target.files.length > 0) {
 			images = [...images, ...Array.from(target.files)];
+			// Auto-extract after a short delay to allow UI to update
+			setTimeout(() => {
+				if (images.length > 0) {
+					handleExtractFromImages();
+				}
+			}, 100);
 		}
 	}
 
@@ -221,19 +233,19 @@
 		variant="ghost"
 		size="sm"
 		onclick={onremove}
-		class="absolute top-3 right-3 z-10"
+		class="absolute top-2 right-2 z-10"
 		disabled={loading}
 	>
 		<Trash2 class="h-4 w-4 text-destructive" />
 	</Button>
 
-	<Card.Header>
-		<Card.Title>Product {index + 1}</Card.Title>
+	<Card.Header class="pb-3">
+		<Card.Title class="text-lg">Product {index + 1}</Card.Title>
 	</Card.Header>
 
-	<Card.Content>
+	<Card.Content class="space-y-3">
 		{#if onsearchproducts}
-			<div class="mb-4">
+			<div>
 				<Button
 					onclick={onsearchproducts}
 					variant="outline"
@@ -254,11 +266,11 @@
 			</Tabs.List>
 
 			<!-- Image Upload Tab -->
-			<Tabs.Content value="image">
-				<div class="space-y-4">
+			<Tabs.Content value="image" class="space-y-3">
+				<div class="space-y-3">
 					<!-- File Upload and Camera Buttons -->
-					<div class="grid gap-3 sm:grid-cols-2">
-						<div class="space-y-2">
+					<div class="grid gap-2 sm:grid-cols-2">
+						<div class="space-y-1.5">
 							<Label class="text-sm font-semibold">Choose from Gallery</Label>
 							<input
 								bind:this={fileInput}
@@ -279,7 +291,7 @@
 							</Button>
 						</div>
 
-						<div class="space-y-2">
+						<div class="space-y-1.5">
 							<Label class="text-sm font-semibold">Live Camera</Label>
 							<Button
 								onclick={() => (isCameraActive ? stopCamera() : startCamera())}
@@ -305,7 +317,7 @@
 
 					<!-- Camera View -->
 					{#if isCameraActive}
-						<div class="space-y-3">
+						<div class="space-y-2">
 							<div
 								class="relative aspect-[4/3] overflow-hidden rounded-lg border-2 bg-muted shadow-inner"
 							>
@@ -359,7 +371,7 @@
 
 					<!-- Image Previews -->
 					{#if images.length > 0}
-						<div class="space-y-3">
+						<div class="space-y-2">
 							<div class="flex items-center gap-2">
 								<Badge variant="secondary" class="gap-1.5">
 									<ImageIcon class="h-3 w-3" />
@@ -387,19 +399,20 @@
 									</div>
 								{/each}
 							</div>
-
-							<Button onclick={handleExtractFromImages} disabled={loading} class="w-full gap-2">
-								<ImageIcon class="h-4 w-4" />
-								{loading ? 'Extracting...' : 'Extract Product Info'}
-							</Button>
+							{#if loading}
+								<div class="flex items-center justify-center gap-2 text-sm text-muted-foreground py-2">
+									<ImageIcon class="h-4 w-4 animate-pulse" />
+									Extracting product info...
+								</div>
+							{/if}
 						</div>
 					{/if}
 				</div>
 			</Tabs.Content>
 
 			<!-- Manual Entry Tab -->
-			<Tabs.Content value="manual">
-				<div class="space-y-4">
+			<Tabs.Content value="manual" class="space-y-3">
+				<div class="space-y-3">
 					<div>
 						<Label for="name-{index}">
 							<Package class="mr-1 inline h-3.5 w-3.5" />
@@ -451,10 +464,10 @@
 
 		<!-- Product Preview -->
 		{#if product}
-			<div class="mt-4 space-y-2 rounded-lg border bg-muted/20 p-3">
+			<div class="space-y-1.5 rounded-lg border bg-muted/20 p-2.5">
 				<div class="flex items-center gap-2">
-					<Badge variant="secondary">Saved</Badge>
-					<span class="font-semibold">{product.name}</span>
+					<Badge variant="secondary" class="text-xs">Saved</Badge>
+					<span class="text-sm font-semibold">{product.name}</span>
 				</div>
 				{#if product.description}
 					<p class="text-xs text-muted-foreground">{product.description}</p>
