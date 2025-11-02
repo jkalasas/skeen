@@ -4,32 +4,30 @@
 	import * as Alert from '$lib/components/ui/alert';
 	import { profileStore } from '$lib/stores/profile.svelte';
 	import type { UserProfile } from '$lib/types/profile';
-	import { CheckCircle2, User } from '@lucide/svelte';
+	import { User } from '@lucide/svelte';
 	import { goto } from '$app/navigation';
 	import { resolveRoute } from '$app/paths';
-
-	let loading = $state(false);
-	let error = $state<string | null>(null);
-	let success = $state(false);
+	import { toast } from 'svelte-sonner';
 
 	async function handleSubmit(profile: UserProfile) {
-		loading = true;
-		error = null;
-		success = false;
+		const promise = () =>
+			new Promise<void>((resolve, reject) => {
+				profileStore
+					.save(profile)
+					.then(() => {
+						resolve();
+						setTimeout(() => {
+							goto(resolveRoute('/'));
+						}, 1500);
+					})
+					.catch(reject);
+			});
 
-		try {
-			await profileStore.save(profile);
-			success = true;
-
-			// Redirect to home after a brief delay
-			setTimeout(() => {
-				goto(resolveRoute('/'));
-			}, 1500);
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to save profile';
-		} finally {
-			loading = false;
-		}
+		toast.promise(promise, {
+			loading: 'Saving profile...',
+			success: 'Profile saved successfully! Redirecting...',
+			error: 'Failed to save profile'
+		});
 	}
 </script>
 
@@ -55,26 +53,7 @@
 			</p>
 		</div>
 
-		<!-- Success Message -->
-		{#if success}
-			<Alert.Root variant="default" class="mb-6 border-green-500/50 bg-green-500/10">
-				<CheckCircle2 class="h-4 w-4 text-green-600" />
-				<Alert.Title>Profile Saved!</Alert.Title>
-				<Alert.Description
-					>Your profile has been saved successfully. Redirecting...</Alert.Description
-				>
-			</Alert.Root>
-		{/if}
-
-		<!-- Error Display -->
-		{#if error}
-			<Alert.Root variant="destructive" class="mb-6 border-destructive/50">
-				<Alert.Title>Error</Alert.Title>
-				<Alert.Description>{error}</Alert.Description>
-			</Alert.Root>
-		{/if}
-
 		<!-- Profile Form -->
-		<ProfileForm initialProfile={profileStore.data} {loading} onsubmit={handleSubmit} />
+		<ProfileForm initialProfile={profileStore.data} onsubmit={handleSubmit} />
 	</div>
 </AuthGuard>

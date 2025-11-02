@@ -15,6 +15,8 @@
 	} from '@lucide/svelte';
 	import { authStore } from '$lib/stores/auth.svelte';
 	import { onMount } from 'svelte';
+	import { Toaster } from '$lib/components/ui/sonner';
+	import { toast } from 'svelte-sonner';
 
 	let { children } = $props();
 
@@ -29,19 +31,19 @@
 	});
 
 	async function handleSignOut() {
-		try {
-			await authStore.signOut();
-		} catch (error) {
-			console.error('Error signing out:', error);
-		}
+		toast.promise(authStore.signOut(), {
+			loading: 'Signing out...',
+			success: 'Signed out successfully',
+			error: 'Error signing out'
+		});
 	}
 
 	async function handleSignIn() {
-		try {
-			await authStore.signInWithGoogle();
-		} catch (error) {
-			console.error('Error signing in:', error);
-		}
+		toast.promise(authStore.signInWithGoogle(), {
+			loading: 'Signing in...',
+			success: 'Signed in successfully',
+			error: 'Error signing in'
+		});
 	}
 </script>
 
@@ -50,6 +52,7 @@
 </svelte:head>
 
 <div class="min-h-screen bg-background">
+	<Toaster />
 	<!-- Navigation -->
 	<nav
 		class="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
