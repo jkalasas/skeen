@@ -2,10 +2,10 @@
 	import * as Card from '$lib/components/ui/card';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { Trash2, Calendar, Star } from '@lucide/svelte';
-	import type { HistoryEntry } from '$lib/db/history';
+	import type { HistoryEntry } from '$lib/db/firestore-history';
 	import Badge from '$lib/components/ui/badge/badge.svelte';
 
-	let { entry, ondelete }: { entry: HistoryEntry; ondelete: (id: number) => void } = $props();
+	let { entry, ondelete }: { entry: HistoryEntry; ondelete: (id: string) => void } = $props();
 
 	function formatDate(timestamp: number): string {
 		const date = new Date(timestamp);
@@ -49,12 +49,6 @@
 
 <Card.Root class="overflow-hidden transition-shadow hover:shadow-lg">
 	<div class="flex flex-col gap-4 sm:flex-row">
-		{#if entry.imageData}
-			<div class="h-48 w-full flex-shrink-0 sm:h-auto sm:w-32">
-				<img src={entry.imageData} alt={entry.product.name} class="h-full w-full object-cover" />
-			</div>
-		{/if}
-
 		<div class="flex-1 p-4 sm:p-6">
 			<div class="mb-3 flex items-start justify-between gap-4">
 				<div class="flex-1">

@@ -11,6 +11,7 @@
 	import ProductInfo from '$lib/components/custom/product-info.svelte';
 	import AssessmentResults from '$lib/components/custom/assessment-results.svelte';
 	import ProductSearch from '$lib/components/custom/product-search.svelte';
+	import AuthGuard from '$lib/components/custom/auth-guard.svelte';
 	import { historyStore } from '$lib/stores/history.svelte';
 	import { profileStore } from '$lib/stores/profile.svelte';
 	import { productsStore } from '$lib/stores/products.svelte';
@@ -232,110 +233,133 @@
 	onclose={() => (showProductSearch = false)}
 />
 
-<div class="container mx-auto max-w-5xl p-4 sm:p-6 lg:p-8">
-	<!-- Hero Section -->
-	<div
-		class="mb-8 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background p-8 sm:p-10"
-	>
-		<div class="mb-4 flex items-center gap-3">
-			<div class="rounded-xl bg-primary/20 p-3">
-				<img src={SkeenLogo} alt="Skeen Logo" class="h-12 w-12" />
+<AuthGuard>
+	<div class="container mx-auto max-w-5xl p-4 sm:p-6 lg:p-8">
+		<!-- Hero Section -->
+		<div
+			class="mb-8 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background p-8 sm:p-10"
+		>
+			<div class="mb-4 flex items-center gap-3">
+				<div class="rounded-xl bg-primary/20 p-3">
+					<img src={SkeenLogo} alt="Skeen Logo" class="h-12 w-12" />
+				</div>
+				<h1 class="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">Skeen</h1>
 			</div>
-			<h1 class="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">Skeen</h1>
+			<p class="max-w-2xl text-lg text-muted-foreground">
+				Your AI-powered skincare product analyzer. Upload images or enter product details to get
+				instant, science-backed assessments.
+			</p>
 		</div>
-		<p class="max-w-2xl text-lg text-muted-foreground">
-			Your AI-powered skincare product analyzer. Upload images or enter product details to get
-			instant, science-backed assessments.
-		</p>
-	</div>
 
-	<!-- Profile Incomplete Banner -->
-	{#if profileStore.initialized && !profileStore.isComplete}
-		<Alert.Root class="mb-6 border-blue-500/50 bg-blue-500/10">
-			<Info class="h-4 w-4 text-blue-600" />
-			<Alert.Title>Complete your profile for personalized assessments</Alert.Title>
-			<Alert.Description class="flex items-center justify-between gap-4">
-				<span>
-					Get tailored skincare recommendations based on your skin type, concerns, and preferences.
-				</span>
-				<Button variant="outline" size="sm" onclick={goToProfile} class="shrink-0 gap-2">
-					<User class="h-3.5 w-3.5" />
-					Complete Profile
+		<!-- Profile Incomplete Banner -->
+		{#if profileStore.initialized && !profileStore.isComplete}
+			<Alert.Root class="mb-6 border-blue-500/50 bg-blue-500/10">
+				<Info class="h-4 w-4 text-blue-600" />
+				<Alert.Title>Complete your profile for personalized assessments</Alert.Title>
+				<Alert.Description class="flex items-center justify-between gap-4">
+					<span>
+						Get tailored skincare recommendations based on your skin type, concerns, and
+						preferences.
+					</span>
+					<Button variant="outline" size="sm" onclick={goToProfile} class="shrink-0 gap-2">
+						<User class="h-3.5 w-3.5" />
+						Complete Profile
+					</Button>
+				</Alert.Description>
+			</Alert.Root>
+		{/if}
+
+		<!-- Tabs for Manual Input and Image Upload -->
+		<Tabs.Root bind:value={activeTab} class="mb-8">
+			<Tabs.List class="grid w-full grid-cols-2 bg-muted/50 p-1">
+				<Tabs.Trigger value="image" class="gap-2">📸 Image Upload</Tabs.Trigger>
+				<Tabs.Trigger value="productinfo" class="gap-2">✍️ Product Info</Tabs.Trigger>
+			</Tabs.List>
+
+			<!-- Search Products Button -->
+			<div class="mt-4 mb-4">
+				<Button
+					onclick={() => (showProductSearch = true)}
+					variant="outline"
+					class="w-full gap-2"
+					disabled={loading}
+				>
+					<Search class="h-4 w-4" />
+					Search Saved Products ({productsStore.items.length})
 				</Button>
-			</Alert.Description>
-		</Alert.Root>
-	{/if}
+			</div>
 
-	<!-- Tabs for Manual Input and Image Upload -->
-	<Tabs.Root bind:value={activeTab} class="mb-8">
-		<Tabs.List class="grid w-full grid-cols-2 bg-muted/50 p-1">
-			<Tabs.Trigger value="image" class="gap-2">📸 Image Upload</Tabs.Trigger>
-			<Tabs.Trigger value="productinfo" class="gap-2">✍️ Product Info</Tabs.Trigger>
-		</Tabs.List>
+			<!-- Image Upload Tab -->
+			<Tabs.Content value="image">
+				<ImageUpload
+					bind:images
+					{loading}
+					onimageschange={handleImagesChange}
+					onextract={extractProductInfo}
+					onassess={assessProduct}
+					onreset={reset}
+				/>
+			</Tabs.Content>
 
-		<!-- Search Products Button -->
-		<div class="mt-4 mb-4">
-			<Button
-				onclick={() => (showProductSearch = true)}
-				variant="outline"
-				class="w-full gap-2"
-				disabled={loading}
-			>
-				<Search class="h-4 w-4" />
-				Search Saved Products ({productsStore.items.length})
-			</Button>
-		</div>
+			<!-- Product Info Tab -->
+			<Tabs.Content value="productinfo">
+				<ProductEntry
+					bind:this={productEntryComponent}
+					{loading}
+					onsubmit={handleManualSubmit}
+					initialName={product?.name ?? ''}
+					initialDescription={product?.description ?? ''}
+					initialIngredients={product?.ingredients ?? []}
+				/>
+			</Tabs.Content>
+		</Tabs.Root>
 
-		<!-- Image Upload Tab -->
-		<Tabs.Content value="image">
-			<ImageUpload
-				bind:images
-				{loading}
-				onimageschange={handleImagesChange}
-				onextract={extractProductInfo}
-				onassess={assessProduct}
-				onreset={reset}
-			/>
-		</Tabs.Content>
+		<!-- Error Display -->
+		{#if error}
+			<Alert.Root variant="destructive" class="mb-6 border-destructive/50">
+				<AlertCircle class="h-4 w-4" />
+				<Alert.Title>Error</Alert.Title>
+				<Alert.Description>{error}</Alert.Description>
+			</Alert.Root>
+		{/if}
 
-		<!-- Product Info Tab -->
-		<Tabs.Content value="productinfo">
-			<ProductEntry
-				bind:this={productEntryComponent}
-				{loading}
-				onsubmit={handleManualSubmit}
-				initialName={product?.name ?? ''}
-				initialDescription={product?.description ?? ''}
-				initialIngredients={product?.ingredients ?? []}
-			/>
-		</Tabs.Content>
-	</Tabs.Root>
+		<!-- Save Success Message -->
+		{#if showSaveSuccess}
+			<Alert.Root class="mb-6 border-green-500/50 bg-green-500/10">
+				<Database class="h-4 w-4 text-green-600" />
+				<Alert.Title>Product Saved!</Alert.Title>
+				<Alert.Description>
+					The product has been saved to your collection and can now be used in assessments.
+				</Alert.Description>
+			</Alert.Root>
+		{/if}
 
-	<!-- Error Display -->
-	{#if error}
-		<Alert.Root variant="destructive" class="mb-6 border-destructive/50">
-			<AlertCircle class="h-4 w-4" />
-			<Alert.Title>Error</Alert.Title>
-			<Alert.Description>{error}</Alert.Description>
-		</Alert.Root>
-	{/if}
+		<!-- Product Information -->
+		{#if product && !assessment}
+			<div class="mb-6">
+				<div class="mb-4 flex items-center justify-between">
+					<h2 class="text-xl font-semibold">Extracted Product Information</h2>
+					<Button
+						onclick={saveProductToCache}
+						variant="outline"
+						size="sm"
+						class="gap-2"
+						disabled={loading || !!productsStore.findByName(product.name)}
+					>
+						<Save class="h-4 w-4" />
+						{productsStore.findByName(product.name) ? 'Already Saved' : 'Save to Collection'}
+					</Button>
+				</div>
+				<ProductInfo {product} />
+			</div>
+		{/if}
 
-	<!-- Save Success Message -->
-	{#if showSaveSuccess}
-		<Alert.Root class="mb-6 border-green-500/50 bg-green-500/10">
-			<Database class="h-4 w-4 text-green-600" />
-			<Alert.Title>Product Saved!</Alert.Title>
-			<Alert.Description>
-				The product has been saved to your collection and can now be used in assessments.
-			</Alert.Description>
-		</Alert.Root>
-	{/if}
+		<!-- Product Information (with assessment) -->
+		{#if product && assessment}
+			<ProductInfo {product} />
 
-	<!-- Product Information -->
-	{#if product && !assessment}
-		<div class="mb-6">
-			<div class="mb-4 flex items-center justify-between">
-				<h2 class="text-xl font-semibold">Extracted Product Information</h2>
+			<!-- Save to Collection Button under ProductInfo when assessment exists -->
+			<div class="mb-6 flex justify-end">
 				<Button
 					onclick={saveProductToCache}
 					variant="outline"
@@ -344,34 +368,14 @@
 					disabled={loading || !!productsStore.findByName(product.name)}
 				>
 					<Save class="h-4 w-4" />
-					{productsStore.findByName(product.name) ? 'Already Saved' : 'Save to Collection'}
+					{productsStore.findByName(product.name) ? 'Already Saved' : 'Add to Products'}
 				</Button>
 			</div>
-			<ProductInfo {product} />
-		</div>
-	{/if}
+		{/if}
 
-	<!-- Product Information (with assessment) -->
-	{#if product && assessment}
-		<ProductInfo {product} />
-
-		<!-- Save to Collection Button under ProductInfo when assessment exists -->
-		<div class="mb-6 flex justify-end">
-			<Button
-				onclick={saveProductToCache}
-				variant="outline"
-				size="sm"
-				class="gap-2"
-				disabled={loading || !!productsStore.findByName(product.name)}
-			>
-				<Save class="h-4 w-4" />
-				{productsStore.findByName(product.name) ? 'Already Saved' : 'Add to Products'}
-			</Button>
-		</div>
-	{/if}
-
-	<!-- Assessment Results -->
-	{#if assessment}
-		<AssessmentResults {assessment} />
-	{/if}
-</div>
+		<!-- Assessment Results -->
+		{#if assessment}
+			<AssessmentResults {assessment} />
+		{/if}
+	</div>
+</AuthGuard>
