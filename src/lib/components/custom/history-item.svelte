@@ -2,10 +2,10 @@
 	import * as Card from '$lib/components/ui/card';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { Trash2, Calendar, Star } from '@lucide/svelte';
-	import type { HistoryEntry } from '$lib/db/history';
+	import type { HistoryEntry } from '$lib/db/firestore-history';
 	import Badge from '$lib/components/ui/badge/badge.svelte';
 
-	let { entry, ondelete }: { entry: HistoryEntry; ondelete: (id: number) => void } = $props();
+	let { entry, ondelete }: { entry: HistoryEntry; ondelete: (id: string) => void } = $props();
 
 	function formatDate(timestamp: number): string {
 		const date = new Date(timestamp);

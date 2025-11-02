@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { historyStore } from '$lib/stores/history.svelte';
 	import HistoryItem from '$lib/components/custom/history-item.svelte';
+	import AuthGuard from '$lib/components/custom/auth-guard.svelte';
 	import * as Alert from '$lib/components/ui/alert';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
@@ -49,7 +50,7 @@
 		historyStore.load();
 	});
 
-	async function handleDelete(id: number) {
+	async function handleDelete(id: string) {
 		await historyStore.delete(id);
 	}
 
@@ -91,125 +92,127 @@
 	<title>Assessment History - Skeen</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
-	<!-- Header -->
-	<div class="mb-8">
-		<div class="mb-2 flex items-center gap-3">
-			<Button variant="ghost" size="icon" href="/" class="rounded-full">
-				<ArrowLeft class="h-5 w-5" />
-			</Button>
-			<div class="flex items-center gap-3">
-				<div class="rounded-xl bg-primary/20 p-3">
-					<History class="h-7 w-7 text-primary" />
+<AuthGuard>
+	<div class="container mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
+		<!-- Header -->
+		<div class="mb-8">
+			<div class="mb-2 flex items-center gap-3">
+				<Button variant="ghost" size="icon" href="/" class="rounded-full">
+					<ArrowLeft class="h-5 w-5" />
+				</Button>
+				<div class="flex items-center gap-3">
+					<div class="rounded-xl bg-primary/20 p-3">
+						<History class="h-7 w-7 text-primary" />
+					</div>
+					<h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Assessment History</h1>
 				</div>
-				<h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Assessment History</h1>
 			</div>
+			<p class="ml-16 text-muted-foreground">View and manage your past product assessments</p>
 		</div>
-		<p class="ml-16 text-muted-foreground">View and manage your past product assessments</p>
-	</div>
 
-	<!-- Search and Actions Bar -->
-	<div class="mb-6 flex flex-col gap-4 sm:flex-row">
-		<div class="relative flex-1">
-			<Search class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-			<Input
-				type="text"
-				placeholder="Search by product name, description, or ingredients..."
-				bind:value={searchQuery}
-				class="pl-10"
-			/>
-		</div>
-		{#if historyStore.items.length > 0}
-			<Button variant="destructive" onclick={handleClearAll} class="gap-2">
-				<Trash2 class="h-4 w-4" />
-				Clear All
-			</Button>
-		{/if}
-	</div>
-
-	<!-- Error Display -->
-	{#if historyStore.error}
-		<Alert.Root variant="destructive" class="mb-6">
-			<AlertCircle class="h-4 w-4" />
-			<Alert.Title>Error</Alert.Title>
-			<Alert.Description>{historyStore.error}</Alert.Description>
-		</Alert.Root>
-	{/if}
-
-	<!-- Loading State -->
-	{#if historyStore.loading}
-		<div class="flex items-center justify-center py-20">
-			<div class="h-12 w-12 animate-spin rounded-full border-b-2 border-primary"></div>
-		</div>
-	{:else if paginatedItems.length === 0}
-		<!-- Empty State -->
-		<div class="py-20 text-center">
-			<History class="mx-auto mb-4 h-16 w-16 text-muted-foreground/50" />
-			<h2 class="mb-2 text-2xl font-semibold">
-				{searchQuery ? 'No results found' : 'No assessments yet'}
-			</h2>
-			<p class="mb-6 text-muted-foreground">
-				{searchQuery
-					? 'Try adjusting your search query'
-					: 'Start assessing products to build your history'}
-			</p>
-			{#if !searchQuery}
-				<Button href="/">Assess a Product</Button>
+		<!-- Search and Actions Bar -->
+		<div class="mb-6 flex flex-col gap-4 sm:flex-row">
+			<div class="relative flex-1">
+				<Search class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+				<Input
+					type="text"
+					placeholder="Search by product name, description, or ingredients..."
+					bind:value={searchQuery}
+					class="pl-10"
+				/>
+			</div>
+			{#if historyStore.items.length > 0}
+				<Button variant="destructive" onclick={handleClearAll} class="gap-2">
+					<Trash2 class="h-4 w-4" />
+					Clear All
+				</Button>
 			{/if}
 		</div>
-	{:else}
-		<!-- History List -->
-		<div class="mb-8 space-y-4">
-			{#each paginatedItems as entry (entry.id)}
-				<HistoryItem {entry} ondelete={handleDelete} />
-			{/each}
-		</div>
 
-		<!-- Pagination -->
-		{#if totalPages > 1}
-			<div class="flex flex-col items-center justify-between gap-4 py-6 sm:flex-row">
-				<div class="text-sm text-muted-foreground">
-					Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(
-						currentPage * itemsPerPage,
-						filteredItems.length
-					)} of {filteredItems.length}
-					{filteredItems.length === 1 ? 'entry' : 'entries'}
-				</div>
-
-				<div class="flex items-center gap-2">
-					<Button
-						variant="outline"
-						size="icon"
-						onclick={() => goToPage(currentPage - 1)}
-						disabled={currentPage === 1}
-					>
-						<ChevronLeft class="h-4 w-4" />
-					</Button>
-
-					{#each getPaginationRange() as page}
-						{#if page === '...'}
-							<span class="px-2 text-muted-foreground">…</span>
-						{:else}
-							<Button
-								variant={currentPage === page ? 'default' : 'outline'}
-								size="icon"
-								onclick={() => goToPage(page as number)}
-							>
-								{page}
-							</Button>
-						{/if}
-					{/each}
-
-					<Button
-						variant="outline"
-						size="icon"
-						onclick={() => goToPage(currentPage + 1)}
-						disabled={currentPage === totalPages}
-					>
-						<ChevronRight class="h-4 w-4" />
-					</Button>
-				</div>
-			</div>
+		<!-- Error Display -->
+		{#if historyStore.error}
+			<Alert.Root variant="destructive" class="mb-6">
+				<AlertCircle class="h-4 w-4" />
+				<Alert.Title>Error</Alert.Title>
+				<Alert.Description>{historyStore.error}</Alert.Description>
+			</Alert.Root>
 		{/if}
-	{/if}
-</div>
+
+		<!-- Loading State -->
+		{#if historyStore.loading}
+			<div class="flex items-center justify-center py-20">
+				<div class="h-12 w-12 animate-spin rounded-full border-b-2 border-primary"></div>
+			</div>
+		{:else if paginatedItems.length === 0}
+			<!-- Empty State -->
+			<div class="py-20 text-center">
+				<History class="mx-auto mb-4 h-16 w-16 text-muted-foreground/50" />
+				<h2 class="mb-2 text-2xl font-semibold">
+					{searchQuery ? 'No results found' : 'No assessments yet'}
+				</h2>
+				<p class="mb-6 text-muted-foreground">
+					{searchQuery
+						? 'Try adjusting your search query'
+						: 'Start assessing products to build your history'}
+				</p>
+				{#if !searchQuery}
+					<Button href="/">Assess a Product</Button>
+				{/if}
+			</div>
+		{:else}
+			<!-- History List -->
+			<div class="mb-8 space-y-4">
+				{#each paginatedItems as entry (entry.id)}
+					<HistoryItem {entry} ondelete={handleDelete} />
+				{/each}
+			</div>
+
+			<!-- Pagination -->
+			{#if totalPages > 1}
+				<div class="flex flex-col items-center justify-between gap-4 py-6 sm:flex-row">
+					<div class="text-sm text-muted-foreground">
+						Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(
+							currentPage * itemsPerPage,
+							filteredItems.length
+						)} of {filteredItems.length}
+						{filteredItems.length === 1 ? 'entry' : 'entries'}
+					</div>
+
+					<div class="flex items-center gap-2">
+						<Button
+							variant="outline"
+							size="icon"
+							onclick={() => goToPage(currentPage - 1)}
+							disabled={currentPage === 1}
+						>
+							<ChevronLeft class="h-4 w-4" />
+						</Button>
+
+						{#each getPaginationRange() as page}
+							{#if page === '...'}
+								<span class="px-2 text-muted-foreground">…</span>
+							{:else}
+								<Button
+									variant={currentPage === page ? 'default' : 'outline'}
+									size="icon"
+									onclick={() => goToPage(page as number)}
+								>
+									{page}
+								</Button>
+							{/if}
+						{/each}
+
+						<Button
+							variant="outline"
+							size="icon"
+							onclick={() => goToPage(currentPage + 1)}
+							disabled={currentPage === totalPages}
+						>
+							<ChevronRight class="h-4 w-4" />
+						</Button>
+					</div>
+				</div>
+			{/if}
+		{/if}
+	</div>
+</AuthGuard>

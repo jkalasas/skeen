@@ -5,7 +5,7 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { Search, Package, Calendar } from '@lucide/svelte';
 	import { productsStore } from '$lib/stores/products.svelte';
-	import type { StoredProduct } from '$lib/db/products';
+	import type { StoredProduct } from '$lib/db/firestore-products';
 	import type { Product } from '$lib/ai/base';
 
 	interface Props {

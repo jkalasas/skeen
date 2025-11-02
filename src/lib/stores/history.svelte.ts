@@ -1,4 +1,4 @@
-import { historyDB, type HistoryEntry } from '$lib/db/history';
+import { firestoreHistoryDB, type HistoryEntry } from '$lib/db/firestore-history';
 import type { Product, ProductAssessment } from '$lib/ai/base';
 
 class HistoryStore {
@@ -23,7 +23,7 @@ class HistoryStore {
 		this._error = null;
 
 		try {
-			this.entries = await historyDB.getAll();
+			this.entries = await firestoreHistoryDB.getAll();
 		} catch (err) {
 			this._error = err instanceof Error ? err.message : 'Failed to load history';
 			console.error('Failed to load history:', err);
@@ -36,17 +36,17 @@ class HistoryStore {
 		this._error = null;
 
 		try {
-			const entry: Omit<HistoryEntry, 'id'> = {
+			const entry: Omit<HistoryEntry, 'id' | 'userId'> = {
 				product,
 				assessment,
 				timestamp: Date.now(),
 				imageData
 			};
 
-			const id = await historyDB.addEntry(entry);
+			const id = await firestoreHistoryDB.addEntry(entry);
 
 			// Add to the beginning of the array (most recent first)
-			this.entries = [{ ...entry, id }, ...this.entries];
+			this.entries = [{ ...entry, id, userId: '' }, ...this.entries];
 		} catch (err) {
 			this._error = err instanceof Error ? err.message : 'Failed to save to history';
 			console.error('Failed to save history:', err);
@@ -54,11 +54,11 @@ class HistoryStore {
 		}
 	}
 
-	async delete(id: number) {
+	async delete(id: string) {
 		this._error = null;
 
 		try {
-			await historyDB.deleteEntry(id);
+			await firestoreHistoryDB.deleteEntry(id);
 			this.entries = this.entries.filter((entry) => entry.id !== id);
 		} catch (err) {
 			this._error = err instanceof Error ? err.message : 'Failed to delete entry';
@@ -75,7 +75,7 @@ class HistoryStore {
 			if (!query.trim()) {
 				await this.load();
 			} else {
-				this.entries = await historyDB.search(query);
+				this.entries = await firestoreHistoryDB.search(query);
 			}
 		} catch (err) {
 			this._error = err instanceof Error ? err.message : 'Failed to search history';
@@ -89,7 +89,7 @@ class HistoryStore {
 		this._error = null;
 
 		try {
-			await historyDB.clearAll();
+			await firestoreHistoryDB.clearAll();
 			this.entries = [];
 		} catch (err) {
 			this._error = err instanceof Error ? err.message : 'Failed to clear history';

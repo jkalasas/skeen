@@ -1,4 +1,4 @@
-import { productsDB, type StoredProduct } from '$lib/db/products';
+import { firestoreProductsDB, type StoredProduct } from '$lib/db/firestore-products';
 import type { Product } from '$lib/ai/base';
 
 class ProductsStore {
@@ -23,7 +23,7 @@ class ProductsStore {
 		this._error = null;
 
 		try {
-			this.products = await productsDB.getAll();
+			this.products = await firestoreProductsDB.getAll();
 		} catch (err) {
 			this._error = err instanceof Error ? err.message : 'Failed to load products';
 			console.error('Failed to load products:', err);
@@ -32,13 +32,13 @@ class ProductsStore {
 		}
 	}
 
-	async add(product: Product): Promise<number> {
+	async add(product: Product): Promise<string> {
 		this._error = null;
 
 		try {
-			// Sanitize product data for IndexedDB storage
+			// Sanitize product data for Firestore storage
 			// Create a clean object with only serializable values
-			const sanitizedProduct: Omit<StoredProduct, 'id'> = {
+			const sanitizedProduct: Omit<StoredProduct, 'id' | 'userId'> = {
 				name: String(product.name),
 				timestamp: Date.now(),
 				lastUsed: Date.now()
@@ -65,10 +65,10 @@ class ProductsStore {
 				}
 			}
 
-			const id = await productsDB.addProduct(sanitizedProduct);
+			const id = await firestoreProductsDB.addProduct(sanitizedProduct);
 
 			// Add to the beginning of the array (most recent first)
-			this.products = [{ ...sanitizedProduct, id }, ...this.products];
+			this.products = [{ ...sanitizedProduct, id, userId: '' }, ...this.products];
 
 			return id;
 		} catch (err) {
@@ -82,12 +82,13 @@ class ProductsStore {
 		this._error = null;
 
 		try {
-			// Sanitize product data for IndexedDB storage
+			// Sanitize product data for Firestore storage
 			const sanitizedProduct: StoredProduct = {
 				id: product.id,
 				name: String(product.name),
 				timestamp: product.timestamp,
-				lastUsed: Date.now()
+				lastUsed: Date.now(),
+				userId: product.userId
 			};
 
 			// Only add description if it's a non-empty string
@@ -111,7 +112,7 @@ class ProductsStore {
 				}
 			}
 
-			await productsDB.updateProduct(sanitizedProduct);
+			await firestoreProductsDB.updateProduct(sanitizedProduct);
 
 			// Update in the array
 			const index = this.products.findIndex((p) => p.id === product.id);
@@ -125,11 +126,11 @@ class ProductsStore {
 		}
 	}
 
-	async delete(id: number) {
+	async delete(id: string) {
 		this._error = null;
 
 		try {
-			await productsDB.deleteProduct(id);
+			await firestoreProductsDB.deleteProduct(id);
 			this.products = this.products.filter((product) => product.id !== id);
 		} catch (err) {
 			this._error = err instanceof Error ? err.message : 'Failed to delete product';
@@ -147,7 +148,7 @@ class ProductsStore {
 				await this.load();
 				return this.products;
 			} else {
-				const results = await productsDB.search(query);
+				const results = await firestoreProductsDB.search(query);
 				this.products = results;
 				return results;
 			}
@@ -160,9 +161,9 @@ class ProductsStore {
 		}
 	}
 
-	async updateLastUsed(id: number): Promise<void> {
+	async updateLastUsed(id: string): Promise<void> {
 		try {
-			await productsDB.updateLastUsed(id);
+			await firestoreProductsDB.updateLastUsed(id);
 			const product = this.products.find((p) => p.id === id);
 			if (product) {
 				product.lastUsed = Date.now();
@@ -176,7 +177,7 @@ class ProductsStore {
 		this._error = null;
 
 		try {
-			await productsDB.clearAll();
+			await firestoreProductsDB.clearAll();
 			this.products = [];
 		} catch (err) {
 			this._error = err instanceof Error ? err.message : 'Failed to clear products';

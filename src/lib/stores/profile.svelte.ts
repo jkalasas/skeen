@@ -1,6 +1,5 @@
 import type { UserProfile } from '$lib/types/profile';
-
-const STORAGE_KEY = 'skeen_user_profile';
+import { firestoreProfileDB } from '$lib/db/firestore-profile';
 
 class ProfileStore {
 	private profile = $state<UserProfile | null>(null);
@@ -24,15 +23,10 @@ class ProfileStore {
 	}
 
 	async load() {
-		if (typeof window === 'undefined') return;
-
 		this._loading = true;
 
 		try {
-			const stored = localStorage.getItem(STORAGE_KEY);
-			if (stored) {
-				this.profile = JSON.parse(stored);
-			}
+			this.profile = await firestoreProfileDB.load();
 		} catch (err) {
 			console.error('Failed to load profile:', err);
 		} finally {
@@ -42,12 +36,10 @@ class ProfileStore {
 	}
 
 	async save(profile: UserProfile) {
-		if (typeof window === 'undefined') return;
-
 		this._loading = true;
 
 		try {
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+			await firestoreProfileDB.save(profile);
 			this.profile = profile;
 		} catch (err) {
 			console.error('Failed to save profile:', err);
@@ -58,10 +50,8 @@ class ProfileStore {
 	}
 
 	async clear() {
-		if (typeof window === 'undefined') return;
-
 		try {
-			localStorage.removeItem(STORAGE_KEY);
+			await firestoreProfileDB.clear();
 			this.profile = null;
 		} catch (err) {
 			console.error('Failed to clear profile:', err);
