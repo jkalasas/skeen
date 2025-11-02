@@ -3,23 +3,23 @@ import { getAI, type AI, GoogleAIBackend } from 'firebase/ai';
 import { getAuth, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 import { browser } from '$app/environment';
-
-// Access environment variables safely
-const getEnvVar = (key: string): string => {
-	if (browser && typeof window !== 'undefined') {
-		return (window as any).__env?.[key] || import.meta.env[key] || '';
-	}
-	return import.meta.env[key] || '';
-};
+import {
+	PUBLIC_FIREBASE_API_KEY,
+	PUBLIC_FIREBASE_AUTH_DOMAIN,
+	PUBLIC_FIREBASE_PROJECT_ID,
+	PUBLIC_FIREBASE_STORAGE_BUCKET,
+	PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+	PUBLIC_FIREBASE_APP_ID
+} from '$env/static/public';
 
 // Firebase configuration
 const firebaseConfig = {
-	apiKey: getEnvVar('PUBLIC_FIREBASE_API_KEY'),
-	authDomain: getEnvVar('PUBLIC_FIREBASE_AUTH_DOMAIN'),
-	projectId: getEnvVar('PUBLIC_FIREBASE_PROJECT_ID'),
-	storageBucket: getEnvVar('PUBLIC_FIREBASE_STORAGE_BUCKET'),
-	messagingSenderId: getEnvVar('PUBLIC_FIREBASE_MESSAGING_SENDER_ID'),
-	appId: getEnvVar('PUBLIC_FIREBASE_APP_ID')
+	apiKey: PUBLIC_FIREBASE_API_KEY,
+	authDomain: PUBLIC_FIREBASE_AUTH_DOMAIN,
+	projectId: PUBLIC_FIREBASE_PROJECT_ID,
+	storageBucket: PUBLIC_FIREBASE_STORAGE_BUCKET,
+	messagingSenderId: PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+	appId: PUBLIC_FIREBASE_APP_ID
 };
 
 let app: FirebaseApp | null = null;

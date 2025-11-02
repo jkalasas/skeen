@@ -83,3 +83,9 @@ The project uses TypeScript for static type checking.
 
 - **Check:** `bun run check`
 - **Check (watch mode):** `bun run check:watch`
+
+## Environment Variables
+
+Check the `.env.example` for available environment variables. All are prefixed with `PUBLIC_` for public use.
+
+Inside the code make sure to import from `$env/static/public` to use the env variables.
