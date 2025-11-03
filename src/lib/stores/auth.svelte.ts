@@ -63,7 +63,7 @@ class AuthStore {
 					if (user) {
 						await profileStore.load();
 					} else {
-						await profileStore.clear();
+						profileStore.clear();
 					}
 					this._loading = false;
 					this._initialized = true;

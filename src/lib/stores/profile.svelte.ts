@@ -49,14 +49,10 @@ class ProfileStore {
 		}
 	}
 
-	async clear() {
-		try {
-			await firestoreProfileDB.clear();
-			this.profile = null;
-		} catch (err) {
-			console.error('Failed to clear profile:', err);
-			throw err;
-		}
+	clear() {
+		// Only clear local state, no Firestore interaction needed
+		// When a user signs in, they'll load their own profile from Firestore
+		this.profile = null;
 	}
 }
 
