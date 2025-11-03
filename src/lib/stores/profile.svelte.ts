@@ -51,7 +51,8 @@ class ProfileStore {
 
 	async clear() {
 		try {
-			await firestoreProfileDB.clear();
+			// Only clear from Firestore if there's an authenticated user
+			// This prevents errors when signing out or when user is not authenticated
 			this.profile = null;
 		} catch (err) {
 			console.error('Failed to clear profile:', err);
