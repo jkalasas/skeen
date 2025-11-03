@@ -174,15 +174,15 @@
 	<div class="container mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
 		<!-- Hero Section -->
 		<div
-			class="mb-8 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background p-8 sm:p-10"
+			class="mb-6 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background p-6 sm:p-8"
 		>
-			<div class="mb-4 flex items-center gap-3">
-				<div class="rounded-xl bg-primary/20 p-3">
-					<Heart class="h-8 w-8 text-primary" />
+			<div class="mb-3 flex items-center gap-3">
+				<div class="rounded-xl bg-primary/20 p-2.5">
+					<Heart class="h-7 w-7 text-primary" />
 				</div>
-				<h1 class="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">Product Companion</h1>
+				<h1 class="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">Product Companion</h1>
 			</div>
-			<p class="max-w-2xl text-lg text-muted-foreground">
+			<p class="max-w-2xl text-base text-muted-foreground">
 				Assess how well 2-{maxProducts} products work together in your skincare routine. Upload images
 				or enter details manually.
 			</p>
@@ -190,7 +190,7 @@
 
 		<!-- Profile Incomplete Banner -->
 		{#if profileStore.initialized && !profileStore.isComplete}
-			<Alert.Root class="mb-6 border-blue-500/50 bg-blue-500/10">
+			<Alert.Root class="mb-4 border-blue-500/50 bg-blue-500/10">
 				<Info class="h-4 w-4 text-blue-600" />
 				<Alert.Title>Complete your profile for personalized assessments</Alert.Title>
 				<Alert.Description class="flex items-center justify-between gap-4">
@@ -206,7 +206,7 @@
 		{/if}
 
 		<!-- Product Entry Forms -->
-		<div class="mb-8 space-y-4">
+		<div class="mb-6 space-y-3">
 			<div class="flex items-center justify-between">
 				<h2 class="text-xl font-semibold">Your Products ({validProductCount}/{products.length})</h2>
 				<Button
@@ -221,7 +221,7 @@
 				</Button>
 			</div>
 
-			<div class="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+			<div class="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
 				{#each products as product, index (index)}
 					<MultiProductEntry
 						bind:this={productComponents[index]}
@@ -238,7 +238,7 @@
 		</div>
 
 		<!-- Action Buttons -->
-		<div class="mb-8 flex flex-wrap gap-4">
+		<div class="mb-6 flex flex-wrap gap-3 sticky top-0 bg-background/95 backdrop-blur-sm py-3 z-10 border-b">
 			<Button
 				onclick={assessCombination}
 				disabled={loading || validProductCount < 2}
@@ -253,7 +253,7 @@
 
 		<!-- Error Display -->
 		{#if error}
-			<Alert.Root variant="destructive" class="mb-6 border-destructive/50">
+			<Alert.Root variant="destructive" class="mb-4 border-destructive/50">
 				<AlertCircle class="h-4 w-4" />
 				<Alert.Title>Error</Alert.Title>
 				<Alert.Description>{error}</Alert.Description>
@@ -262,9 +262,9 @@
 
 		<!-- Product Information Grid -->
 		{#if combination}
-			<div class="mb-6">
-				<h2 class="mb-4 text-xl font-semibold">Product Details</h2>
-				<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+			<div class="mb-4">
+				<h2 class="mb-3 text-xl font-semibold">Product Details</h2>
+				<div class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
 					{#each products as product (product?.name)}
 						{#if product}
 							<ProductInfo {product} />
