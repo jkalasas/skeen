@@ -9,6 +9,8 @@ import {
 import { browser } from '$app/environment';
 import { profileStore } from './profile.svelte';
 
+const AUTH_TIMEOUT_MS = 10000; // 10 second timeout for auth initialization
+
 class AuthStore {
 	private user = $state<User | null>(null);
 	private _loading = $state(true);
@@ -30,21 +32,53 @@ class AuthStore {
 		return this.user !== null;
 	}
 
+	private _completeInitialization(error?: unknown) {
+		if (error) {
+			console.error('Error initializing auth:', error);
+		}
+		this.user = null;
+		this._loading = false;
+		this._initialized = true;
+	}
+
 	init() {
 		if (!browser || this._initialized) return;
 
-		const auth = getAuthInstance();
-
-		onAuthStateChanged(auth, async (user) => {
-			this.user = user;
-			if (user) {
-				await profileStore.load();
-			} else {
-				await profileStore.clear();
+		// Set a timeout to ensure we don't stay in loading state forever
+		const timeout = setTimeout(() => {
+			if (!this._initialized) {
+				console.warn('Auth initialization timeout - forcing completion');
+				this._completeInitialization();
 			}
-			this._loading = false;
-			this._initialized = true;
-		});
+		}, AUTH_TIMEOUT_MS);
+
+		try {
+			const auth = getAuthInstance();
+
+			onAuthStateChanged(
+				auth,
+				async (user) => {
+					clearTimeout(timeout);
+					this.user = user;
+					if (user) {
+						await profileStore.load();
+					} else {
+						await profileStore.clear();
+					}
+					this._loading = false;
+					this._initialized = true;
+				},
+				(error) => {
+					// Handle auth state change errors
+					clearTimeout(timeout);
+					this._completeInitialization(error);
+				}
+			);
+		} catch (error) {
+			// Handle errors in getting auth instance or setting up listener
+			clearTimeout(timeout);
+			this._completeInitialization(error);
+		}
 	}
 
 	async signInWithGoogle() {
