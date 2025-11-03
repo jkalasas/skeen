@@ -30,6 +30,15 @@ class AuthStore {
 		return this.user !== null;
 	}
 
+	private _completeInitialization(error?: unknown) {
+		if (error) {
+			console.error('Error initializing auth:', error);
+		}
+		this.user = null;
+		this._loading = false;
+		this._initialized = true;
+	}
+
 	init() {
 		if (!browser || this._initialized) return;
 
@@ -37,8 +46,7 @@ class AuthStore {
 		const timeout = setTimeout(() => {
 			if (!this._initialized) {
 				console.warn('Auth initialization timeout - forcing completion');
-				this._loading = false;
-				this._initialized = true;
+				this._completeInitialization();
 			}
 		}, 10000); // 10 second timeout
 
@@ -61,19 +69,13 @@ class AuthStore {
 				(error) => {
 					// Handle auth state change errors
 					clearTimeout(timeout);
-					console.error('Error in auth state change:', error);
-					this.user = null;
-					this._loading = false;
-					this._initialized = true;
+					this._completeInitialization(error);
 				}
 			);
 		} catch (error) {
 			// Handle errors in getting auth instance or setting up listener
 			clearTimeout(timeout);
-			console.error('Error initializing auth:', error);
-			this.user = null;
-			this._loading = false;
-			this._initialized = true;
+			this._completeInitialization(error);
 		}
 	}
 
