@@ -5,7 +5,6 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import {
 		History,
-		Sparkles,
 		User,
 		GitCompare,
 		Heart,
@@ -114,7 +113,13 @@
 
 		<!-- Main Content -->
 		<main>
-			{@render children?.()}
+			{#if authStore.initialized}
+				{@render children?.()}
+			{:else}
+				<div class="flex h-screen items-center justify-center">
+					<p>Loading...</p>
+				</div>
+			{/if}
 		</main>
 	</nav>
 </div>
