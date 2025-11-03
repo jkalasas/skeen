@@ -33,18 +33,48 @@ class AuthStore {
 	init() {
 		if (!browser || this._initialized) return;
 
-		const auth = getAuthInstance();
-
-		onAuthStateChanged(auth, async (user) => {
-			this.user = user;
-			if (user) {
-				await profileStore.load();
-			} else {
-				await profileStore.clear();
+		// Set a timeout to ensure we don't stay in loading state forever
+		const timeout = setTimeout(() => {
+			if (!this._initialized) {
+				console.warn('Auth initialization timeout - forcing completion');
+				this._loading = false;
+				this._initialized = true;
 			}
+		}, 10000); // 10 second timeout
+
+		try {
+			const auth = getAuthInstance();
+
+			onAuthStateChanged(
+				auth,
+				async (user) => {
+					clearTimeout(timeout);
+					this.user = user;
+					if (user) {
+						await profileStore.load();
+					} else {
+						await profileStore.clear();
+					}
+					this._loading = false;
+					this._initialized = true;
+				},
+				(error) => {
+					// Handle auth state change errors
+					clearTimeout(timeout);
+					console.error('Error in auth state change:', error);
+					this.user = null;
+					this._loading = false;
+					this._initialized = true;
+				}
+			);
+		} catch (error) {
+			// Handle errors in getting auth instance or setting up listener
+			clearTimeout(timeout);
+			console.error('Error initializing auth:', error);
+			this.user = null;
 			this._loading = false;
 			this._initialized = true;
-		});
+		}
 	}
 
 	async signInWithGoogle() {
