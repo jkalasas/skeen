@@ -9,6 +9,8 @@ import {
 import { browser } from '$app/environment';
 import { profileStore } from './profile.svelte';
 
+const AUTH_TIMEOUT_MS = 10000; // 10 second timeout for auth initialization
+
 class AuthStore {
 	private user = $state<User | null>(null);
 	private _loading = $state(true);
@@ -48,7 +50,7 @@ class AuthStore {
 				console.warn('Auth initialization timeout - forcing completion');
 				this._completeInitialization();
 			}
-		}, 10000); // 10 second timeout
+		}, AUTH_TIMEOUT_MS);
 
 		try {
 			const auth = getAuthInstance();
