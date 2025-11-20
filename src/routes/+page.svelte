@@ -4,7 +4,7 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Tabs from '$lib/components/ui/tabs';
 	import { Button } from '$lib/components/ui/button';
-	import { Sparkles, AlertCircle, User, Info, Save, Search, Database } from '@lucide/svelte';
+	import { Sparkles, AlertCircle, User, Info, Save, Search, Camera, Type, LogIn } from '@lucide/svelte';
 	import type { BaseAIClient, Product, ProductAssessment } from '$lib/ai/base';
 	import ImageUpload from '$lib/components/custom/image-upload.svelte';
 	import ProductEntry from '$lib/components/custom/product-entry.svelte';
@@ -15,6 +15,7 @@
 	import { historyStore } from '$lib/stores/history.svelte';
 	import { profileStore } from '$lib/stores/profile.svelte';
 	import { productsStore } from '$lib/stores/products.svelte';
+	import { authStore } from '$lib/stores/auth.svelte';
 	import type { PageData } from './$types';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -178,25 +179,24 @@
 <!-- Profile Prompt Dialog -->
 {#if showProfilePrompt}
 	<Dialog.Root bind:open={showProfilePrompt}>
-		<Dialog.Content class="sm:max-w-md">
+		<Dialog.Content class="sm:max-w-md glass border-none shadow-2xl">
 			<Dialog.Header>
 				<div class="mb-4 flex justify-center">
-					<div class="rounded-full bg-primary/10 p-4">
-						<User class="h-8 w-8 text-primary" />
+					<div class="rounded-full bg-primary/20 p-6 ring-4 ring-primary/10">
+						<User class="h-10 w-10 text-primary" />
 					</div>
 				</div>
-				<Dialog.Title class="text-center text-xl">Complete Your Profile First</Dialog.Title>
-				<Dialog.Description class="text-center">
-					To get personalized skincare assessments tailored to your unique skin needs, please
-					complete your profile first.
+				<Dialog.Title class="text-center text-2xl font-bold">Complete Your Profile</Dialog.Title>
+				<Dialog.Description class="text-center text-lg pt-2">
+					To get personalized skincare assessments tailored to your unique skin needs, we need to know a bit more about you.
 				</Dialog.Description>
 			</Dialog.Header>
-			<Dialog.Footer class="flex-col gap-2 sm:flex-col">
-				<Button onclick={goToProfile} class="w-full gap-2">
-					<User class="h-4 w-4" />
-					Complete Profile
+			<Dialog.Footer class="flex-col gap-3 sm:flex-col mt-4">
+				<Button onclick={goToProfile} class="w-full gap-2 rounded-full text-lg h-12 shadow-lg shadow-primary/20">
+					<User class="h-5 w-5" />
+					Complete Profile Now
 				</Button>
-				<Button variant="ghost" onclick={() => (showProfilePrompt = false)} class="w-full">
+				<Button variant="ghost" onclick={() => (showProfilePrompt = false)} class="w-full rounded-full">
 					Maybe Later
 				</Button>
 			</Dialog.Footer>
@@ -211,138 +211,149 @@
 	onclose={() => (showProductSearch = false)}
 />
 
-<AuthGuard>
-	<div class="container mx-auto max-w-5xl p-4 sm:p-6 lg:p-8">
-		<!-- Hero Section -->
-		<div
-			class="mb-8 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background p-8 sm:p-10"
-		>
-			<div class="mb-4 flex items-center gap-3">
-				<div class="rounded-xl bg-primary/20 p-3">
-					<img src={SkeenLogo} alt="Skeen Logo" class="h-12 w-12" />
-				</div>
-				<h1 class="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">Skeen</h1>
-			</div>
-			<p class="max-w-2xl text-lg text-muted-foreground">
-				Your AI-powered skincare product analyzer. Upload images or enter product details to get
-				instant, science-backed assessments.
-			</p>
-		</div>
+<div class="container mx-auto max-w-5xl px-4">
+    <!-- Hero Section - Always Visible -->
+    <div class="py-12 sm:py-20 text-center space-y-6 animate-in fade-in zoom-in-95 duration-1000">
+        <h1 class="text-5xl sm:text-7xl font-extrabold tracking-tight text-foreground drop-shadow-sm">
+            <span class="block">Skincare Science,</span>
+            <span class="text-gradient">Simplified.</span>
+        </h1>
+        <p class="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            Instant, AI-powered analysis for your skincare products.
+            Discover what's really in your bottle.
+        </p>
 
+        {#if authStore.initialized && !authStore.isAuthenticated}
+            <div class="mt-8 flex justify-center">
+                    <Button onclick={() => authStore.signInWithGoogle()} size="lg" class="rounded-full gap-2 shadow-lg shadow-primary/20 animate-pulse-slow">
+                    <LogIn class="h-5 w-5" />
+                    Get Started with Google
+                </Button>
+            </div>
+        {/if}
+    </div>
+
+    <!-- Main Interaction Area - Protected -->
+    <AuthGuard>
 		<!-- Profile Incomplete Banner -->
 		{#if profileStore.initialized && !profileStore.isComplete}
-			<Alert.Root class="mb-6 border-blue-500/50 bg-blue-500/10">
-				<Info class="h-4 w-4 text-blue-600" />
-				<Alert.Title>Complete your profile for personalized assessments</Alert.Title>
-				<Alert.Description class="flex items-center justify-between gap-4">
-					<span>
-						Get tailored skincare recommendations based on your skin type, concerns, and
-						preferences.
-					</span>
-					<Button variant="outline" size="sm" onclick={goToProfile} class="shrink-0 gap-2">
-						<User class="h-3.5 w-3.5" />
-						Complete Profile
-					</Button>
-				</Alert.Description>
-			</Alert.Root>
+            <div class="mb-8 animate-in slide-in-from-top-4">
+                <Alert.Root class="glass border-l-4 border-l-primary border-y-0 border-r-0 rounded-r-xl bg-primary/5">
+                    <Info class="h-5 w-5 text-primary" />
+                    <Alert.Title class="font-bold text-primary">Personalize Your Experience</Alert.Title>
+                    <Alert.Description class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-2">
+                        <span class="text-muted-foreground">
+                            Complete your profile to get tailored skincare recommendations based on your skin type.
+                        </span>
+                        <Button size="sm" onclick={goToProfile} class="shrink-0 gap-2 rounded-full shadow-md">
+                            <User class="h-3.5 w-3.5" />
+                            Complete Profile
+                        </Button>
+                    </Alert.Description>
+                </Alert.Root>
+            </div>
 		{/if}
 
-		<!-- Tabs for Manual Input and Image Upload -->
-		<Tabs.Root bind:value={activeTab} class="mb-8">
-			<Tabs.List class="grid w-full grid-cols-2 bg-muted/50 p-1">
-				<Tabs.Trigger value="image" class="gap-2">📸 Image Upload</Tabs.Trigger>
-				<Tabs.Trigger value="productinfo" class="gap-2">✍️ Product Info</Tabs.Trigger>
-			</Tabs.List>
+        <div class="glass rounded-3xl p-1 sm:p-2 shadow-2xl ring-1 ring-white/20 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
+            <Tabs.Root bind:value={activeTab} class="w-full">
+                <div class="flex justify-center pb-6 pt-4">
+                    <Tabs.List class="glass rounded-full p-1 grid grid-cols-2 w-full max-w-md h-auto bg-muted/20">
+                        <Tabs.Trigger value="image" class="rounded-full px-6 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-300">
+                            <span class="flex items-center gap-2 font-medium">
+                                <Camera class="h-4 w-4" />
+                                <span>Scan Product</span>
+                            </span>
+                        </Tabs.Trigger>
+                        <Tabs.Trigger value="productinfo" class="rounded-full px-6 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-300">
+                            <span class="flex items-center gap-2 font-medium">
+                                <Type class="h-4 w-4" />
+                                <span>Manual Entry</span>
+                            </span>
+                        </Tabs.Trigger>
+                    </Tabs.List>
+                </div>
 
-			<!-- Search Products Button -->
-			<div class="mt-4 mb-4">
-				<Button
-					onclick={() => (showProductSearch = true)}
-					variant="outline"
-					class="w-full gap-2"
-					disabled={loading}
-				>
-					<Search class="h-4 w-4" />
-					Search Saved Products ({productsStore.items.length})
-				</Button>
-			</div>
+                <!-- Search Trigger -->
+                 <div class="flex justify-center mb-8">
+                    <Button
+                        onclick={() => showProductSearch = true}
+                        variant="outline"
+                        class="rounded-full border-dashed border-2 px-8 py-6 hover:bg-primary/5 hover:border-primary/50 transition-all gap-2 text-muted-foreground hover:text-primary"
+                    >
+                        <Search class="h-4 w-4" />
+                        Search your collection ({productsStore.items.length})
+                    </Button>
+                </div>
 
-			<!-- Image Upload Tab -->
-			<Tabs.Content value="image">
-				<ImageUpload
-					bind:images
-					{loading}
-					onimageschange={handleImagesChange}
-					onextract={extractProductInfo}
-					onassess={assessProduct}
-					onreset={reset}
-				/>
-			</Tabs.Content>
+                <div class="px-4 pb-8 sm:px-8">
+                     <!-- Content -->
+                    <Tabs.Content value="image" class="mt-0 focus-visible:ring-0 focus-visible:outline-none">
+                        <ImageUpload
+                            bind:images
+                            {loading}
+                            onimageschange={handleImagesChange}
+                            onextract={extractProductInfo}
+                            onassess={assessProduct}
+                            onreset={reset}
+                        />
+                    </Tabs.Content>
 
-			<!-- Product Info Tab -->
-			<Tabs.Content value="productinfo">
-				<ProductEntry
-					bind:this={productEntryComponent}
-					{loading}
-					onsubmit={handleManualSubmit}
-					initialName={product?.name ?? ''}
-					initialDescription={product?.description ?? ''}
-					initialIngredients={product?.ingredients ?? []}
-				/>
-			</Tabs.Content>
-		</Tabs.Root>
+                    <Tabs.Content value="productinfo" class="mt-0 focus-visible:ring-0 focus-visible:outline-none">
+                        <div class="glass-card rounded-2xl p-6 bg-white/40 dark:bg-black/20">
+                            <ProductEntry
+                                bind:this={productEntryComponent}
+                                {loading}
+                                onsubmit={handleManualSubmit}
+                                initialName={product?.name ?? ''}
+                                initialDescription={product?.description ?? ''}
+                                initialIngredients={product?.ingredients ?? []}
+                            />
+                        </div>
+                    </Tabs.Content>
+                </div>
+            </Tabs.Root>
+        </div>
 
-		<!-- Error Display -->
-		{#if error}
-			<Alert.Root variant="destructive" class="mb-6 border-destructive/50">
-				<AlertCircle class="h-4 w-4" />
-				<Alert.Title>Error</Alert.Title>
-				<Alert.Description>{error}</Alert.Description>
-			</Alert.Root>
-		{/if}
+        <!-- Error Display -->
+        {#if error}
+            <div class="mt-8 animate-in fade-in slide-in-from-bottom-4">
+                 <Alert.Root variant="destructive" class="border-destructive/20 bg-destructive/10 text-destructive rounded-2xl">
+                    <AlertCircle class="h-5 w-5" />
+                    <Alert.Title class="text-lg font-semibold">Oops!</Alert.Title>
+                    <Alert.Description class="text-base">{error}</Alert.Description>
+                </Alert.Root>
+            </div>
+        {/if}
 
-		<!-- Product Information -->
-		{#if product && !assessment}
-			<div class="mb-6">
-				<div class="mb-4 flex items-center justify-between">
-					<h2 class="text-xl font-semibold">Extracted Product Information</h2>
-					<Button
-						onclick={saveProductToCache}
-						variant="outline"
-						size="sm"
-						class="gap-2"
-						disabled={loading || !!productsStore.findByName(product.name)}
-					>
-						<Save class="h-4 w-4" />
-						{productsStore.findByName(product.name) ? 'Already Saved' : 'Save to Collection'}
-					</Button>
-				</div>
-				<ProductInfo {product} />
-			</div>
-		{/if}
+        {#if product}
+            <div class="mt-12 space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                <div class="flex items-center justify-between">
+                     <h2 class="text-2xl font-bold flex items-center gap-3">
+                        <Sparkles class="h-6 w-6 text-primary" />
+                        Analysis Result
+                    </h2>
+                     <Button
+                        onclick={saveProductToCache}
+                        variant="secondary"
+                        class="rounded-full gap-2 shadow-sm hover:shadow-md transition-all"
+                        disabled={loading || !!productsStore.findByName(product.name)}
+                    >
+                        <Save class="h-4 w-4" />
+                        {productsStore.findByName(product.name) ? 'Saved' : 'Save to Collection'}
+                    </Button>
+                </div>
 
-		<!-- Product Information (with assessment) -->
-		{#if product && assessment}
-			<ProductInfo {product} />
+                <div class="glass-card rounded-3xl overflow-hidden">
+                    <ProductInfo {product} />
+                </div>
 
-			<!-- Save to Collection Button under ProductInfo when assessment exists -->
-			<div class="mb-6 flex justify-end">
-				<Button
-					onclick={saveProductToCache}
-					variant="outline"
-					size="sm"
-					class="gap-2"
-					disabled={loading || !!productsStore.findByName(product.name)}
-				>
-					<Save class="h-4 w-4" />
-					{productsStore.findByName(product.name) ? 'Already Saved' : 'Add to Products'}
-				</Button>
-			</div>
-		{/if}
+                {#if assessment}
+                    <div class="glass-card rounded-3xl overflow-hidden ring-2 ring-primary/20 shadow-primary/10 shadow-2xl">
+                        <AssessmentResults {assessment} />
+                    </div>
+                {/if}
+            </div>
+        {/if}
+    </AuthGuard>
 
-		<!-- Assessment Results -->
-		{#if assessment}
-			<AssessmentResults {assessment} />
-		{/if}
-	</div>
-</AuthGuard>
+</div>

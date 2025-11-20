@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
-	import * as Card from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Badge } from '$lib/components/ui/badge';
@@ -42,10 +41,8 @@
 	let facingMode = $state<'user' | 'environment'>('environment');
 	let videoReady = $state(false);
 
-	// Generate preview URLs from images
 	let imagePreviews = $derived(images.map((file) => URL.createObjectURL(file)));
 
-	// Cleanup preview URLs on component unmount
 	$effect(() => {
 		return () => {
 			imagePreviews.forEach((url) => URL.revokeObjectURL(url));
@@ -54,7 +51,6 @@
 
 	onMount(() => {
 		return () => {
-			// Cleanup camera stream on unmount
 			if (stream) {
 				stream.getTracks().forEach((track) => track.stop());
 			}
@@ -66,7 +62,6 @@
 			cameraError = null;
 			videoReady = false;
 
-			// Stop any existing stream first
 			if (stream) {
 				stream.getTracks().forEach((track) => track.stop());
 			}
@@ -81,7 +76,6 @@
 			stream = mediaStream;
 			isCameraActive = true;
 
-			// Wait for next tick to ensure videoElement is bound
 			await new Promise((resolve) => setTimeout(resolve, 100));
 
 			if (videoElement && stream) {
@@ -129,14 +123,11 @@
 		const context = canvasElement.getContext('2d');
 		if (!context) return;
 
-		// Set canvas dimensions to match video
 		canvasElement.width = videoElement.videoWidth;
 		canvasElement.height = videoElement.videoHeight;
 
-		// Draw the current video frame to canvas
 		context.drawImage(videoElement, 0, 0);
 
-		// Convert canvas to blob and create file
 		canvasElement.toBlob(
 			(blob) => {
 				if (blob) {
@@ -175,180 +166,174 @@
 	}
 </script>
 
-<Card.Root class="border-2 shadow-lg">
-	<Card.Header class="space-y-1">
-		<div class="flex items-center gap-2">
-			<div class="rounded-lg bg-primary/10 p-2">
-				<ImageIcon class="h-5 w-5 text-primary" />
-			</div>
-			<Card.Title class="text-xl">Upload Product Images</Card.Title>
-		</div>
-		<Card.Description
-			>Select or capture images of your skincare product for analysis</Card.Description
-		>
-	</Card.Header>
-	<Card.Content>
-		<div class="space-y-6">
-			<div class="grid gap-4 sm:grid-cols-2">
-				<div class="space-y-2">
-					<Label for="file-upload" class="text-sm font-semibold">Choose from Gallery</Label>
-					<div class="relative">
-						<Input
-							id="file-upload"
-							bind:ref={fileInput}
-							type="file"
-							accept="image/*"
-							multiple
-							onchange={handleFileSelect}
-							class="h-full file:mr-4 file:mb-2 file:rounded-md file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-semibold file:text-primary-foreground hover:file:bg-primary/90"
-						/>
-					</div>
-				</div>
+<div class="glass-card rounded-3xl p-8 text-center border-dashed border-2 border-primary/20 hover:border-primary/50 transition-all duration-300 bg-white/30 dark:bg-black/20 min-h-[400px] flex flex-col justify-center">
+	{#if images.length === 0 && !isCameraActive}
+        <div class="py-6 space-y-8 animate-in fade-in zoom-in-95">
+            <div class="mx-auto bg-primary/10 w-24 h-24 rounded-full flex items-center justify-center animate-pulse-slow ring-4 ring-primary/5">
+                <Upload class="h-10 w-10 text-primary" />
+            </div>
+            <div class="space-y-2">
+                <h3 class="text-2xl font-bold text-gradient">Upload Product Images</h3>
+                <p class="text-muted-foreground max-w-xs mx-auto">
+                    Drag & drop images here, or use your camera to capture the ingredients list.
+                </p>
+            </div>
 
-				<div class="space-y-2">
-					<Label class="text-sm font-semibold">Live Camera</Label>
-					<Button
-						onclick={() => (isCameraActive ? stopCamera() : startCamera())}
-						variant="outline"
-						class="h-13 w-full gap-2"
-						disabled={loading}
-					>
-						<Camera class="h-4 w-4" />
-						{isCameraActive ? 'Close Camera' : 'Open Camera'}
-					</Button>
-				</div>
-			</div>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+                <div class="relative group w-full sm:w-auto">
+                    <Button size="lg" class="w-full sm:w-auto min-w-[160px] rounded-full shadow-lg shadow-primary/20 group-hover:shadow-primary/40 transition-all">
+                        <ImageIcon class="mr-2 h-4 w-4"/>
+                        Choose Files
+                    </Button>
+                    <Input
+                        id="file-upload"
+                        bind:ref={fileInput}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onchange={handleFileSelect}
+                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                </div>
+                <Button size="lg" variant="outline" onclick={startCamera} class="w-full sm:w-auto min-w-[160px] rounded-full gap-2 border-primary/20 hover:bg-primary/5">
+                    <Camera class="h-4 w-4" />
+                    Use Camera
+                </Button>
+            </div>
+        </div>
 
-			{#if cameraError}
-				<div
-					class="flex items-start gap-2 rounded-lg border-2 border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive"
-				>
-					<X class="mt-0.5 h-4 w-4 flex-shrink-0" />
-					<span>{cameraError}</span>
-				</div>
-			{/if}
+    {:else if isCameraActive}
+        <div class="space-y-4 max-w-md mx-auto w-full animate-in fade-in">
+            <div class="relative aspect-[3/4] overflow-hidden rounded-3xl border-2 border-primary/20 bg-black shadow-2xl">
+                {#if !videoReady}
+                    <div class="absolute inset-0 flex items-center justify-center bg-black/90 z-10">
+                        <div class="flex flex-col items-center gap-3">
+                            <Camera class="h-10 w-10 animate-pulse text-primary" />
+                            <p class="text-sm text-white/80">Initializing Camera...</p>
+                        </div>
+                    </div>
+                {/if}
+                <video
+                    bind:this={videoElement}
+                    autoplay
+                    playsinline
+                    muted
+                    class="h-full w-full object-cover"
+                ></video>
+                <canvas bind:this={canvasElement} class="hidden"></canvas>
 
-			{#if isCameraActive}
-				<div class="space-y-4">
-					<div
-						class="relative aspect-[3/4] overflow-hidden rounded-xl border-2 bg-muted shadow-inner"
-					>
-						{#if !videoReady}
-							<div class="absolute inset-0 flex items-center justify-center bg-black/90">
-								<div class="flex flex-col items-center gap-3">
-									<Camera class="h-8 w-8 animate-pulse text-white" />
-									<p class="text-sm text-white">Loading camera...</p>
-								</div>
-							</div>
-						{/if}
-						<video
-							bind:this={videoElement}
-							autoplay
-							playsinline
-							muted
-							class="h-full w-full object-cover"
-						></video>
-						<canvas bind:this={canvasElement} class="hidden"></canvas>
-					</div>
+                <!-- Camera Controls Overlay -->
+                <div class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent flex justify-between items-center">
+                     <Button
+                        size="icon"
+                        variant="outline"
+                        onclick={stopCamera}
+                        class="rounded-full h-10 w-10 bg-white/10 border-white/20 text-white hover:bg-white/20"
+                    >
+                        <X class="h-5 w-5" />
+                    </Button>
 
-					<div class="flex flex-wrap gap-2">
-						<Button
-							onclick={capturePhoto}
-							disabled={loading || !videoReady}
-							class="flex-1 gap-2 sm:flex-none"
-						>
-							<Camera class="h-4 w-4" />
-							Capture Photo
-						</Button>
-						<Button
-							onclick={toggleCamera}
-							variant="outline"
-							disabled={loading || !videoReady}
-							class="gap-2"
-						>
-							<SwitchCamera class="h-4 w-4" />
-							Switch
-						</Button>
-						{#if !loading}
-							<Button onclick={stopCamera} variant="outline" class="gap-2">
-								<X class="h-4 w-4" />
-								Close
-							</Button>
-						{/if}
-					</div>
-				</div>
-			{/if}
+                    <button
+                        onclick={capturePhoto}
+                        disabled={loading || !videoReady}
+                        class="h-16 w-16 rounded-full border-4 border-white flex items-center justify-center bg-white/20 hover:bg-white/40 transition-all active:scale-95"
+                    >
+                        <div class="h-12 w-12 rounded-full bg-white"></div>
+                    </button>
 
-			{#if images.length > 0}
-				<div class="space-y-4">
-					<div class="rounded-lg bg-muted/50 p-4">
-						<div class="mb-4 flex items-center gap-2">
-							<Badge variant="secondary" class="gap-1.5">
-								<ImageIcon class="h-3 w-3" />
-								{images.length}
-								{images.length === 1 ? 'image' : 'images'}
-							</Badge>
-						</div>
+                    <Button
+                        size="icon"
+                        variant="outline"
+                        onclick={toggleCamera}
+                        class="rounded-full h-10 w-10 bg-white/10 border-white/20 text-white hover:bg-white/20"
+                    >
+                        <SwitchCamera class="h-5 w-5" />
+                    </Button>
+                </div>
+                {#if cameraError}
+                    <div class="absolute top-4 left-4 right-4 p-2 bg-destructive/80 text-white rounded-lg text-sm text-center">
+                        {cameraError}
+                    </div>
+                {/if}
+            </div>
+             <Button onclick={stopCamera} variant="ghost" class="text-muted-foreground hover:text-foreground">
+                Cancel Camera Mode
+            </Button>
+        </div>
 
-						<!-- Image Previews Grid -->
-						<div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-							{#each images as image, index}
-								<div
-									class="group relative aspect-square overflow-hidden rounded-xl border-2 bg-muted shadow-sm transition-shadow hover:shadow-md"
-								>
-									<img
-										src={imagePreviews[index]}
-										alt={image.name}
-										class="h-full w-full object-cover"
-									/>
-									<div
-										class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 transition-opacity group-hover:opacity-100"
-									>
-										<div class="flex h-full flex-col items-center justify-end gap-2 p-3">
-											<p
-												class="w-full truncate text-center text-xs font-medium text-white"
-												title={image.name}
-											>
-												{image.name}
-											</p>
-											<Button
-												size="sm"
-												variant="destructive"
-												onclick={() => removeImage(index)}
-												disabled={loading}
-												class="w-full gap-1.5"
-											>
-												<X class="h-3 w-3" />
-												Remove
-											</Button>
-										</div>
-									</div>
-								</div>
-							{/each}
-						</div>
-					</div>
+    {:else}
+        <!-- Image Preview List -->
+         <div class="space-y-6 w-full animate-in fade-in">
+             <div class="flex items-center justify-between">
+                <Badge variant="secondary" class="gap-1.5 px-3 py-1 text-sm rounded-full bg-secondary/50">
+                    <ImageIcon class="h-3.5 w-3.5" />
+                    {images.length} {images.length === 1 ? 'image' : 'images'} selected
+                </Badge>
+                <Button onclick={handleReset} variant="ghost" size="sm" disabled={loading} class="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive rounded-full">
+                    <RefreshCw class="h-4 w-4" />
+                    Reset All
+                </Button>
+             </div>
 
-					<div class="flex flex-wrap gap-2 pt-2">
-						<Button onclick={onextract} disabled={loading} class="flex-1 gap-2 sm:flex-none">
-							<Sparkles class="h-4 w-4" />
-							{loading ? 'Extracting...' : 'Extract Product Info'}
-						</Button>
-						<Button
-							onclick={onassess}
-							disabled={loading}
-							variant="secondary"
-							class="flex-1 gap-2 sm:flex-none"
-						>
-							<Sparkles class="h-4 w-4" />
-							{loading ? 'Assessing...' : 'Assess Directly'}
-						</Button>
-						<Button onclick={handleReset} variant="outline" disabled={loading} class="gap-2">
-							<RefreshCw class="h-4 w-4" />
-							Reset
-						</Button>
-					</div>
-				</div>
-			{/if}
-		</div>
-	</Card.Content>
-</Card.Root>
+            <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+                {#each images as image, index}
+                    <div class="group relative aspect-square overflow-hidden rounded-2xl border border-border/50 bg-muted shadow-sm transition-all hover:shadow-md hover:scale-[1.02]">
+                        <img
+                            src={imagePreviews[index]}
+                            alt={image.name}
+                            class="h-full w-full object-cover"
+                        />
+                        <div class="absolute inset-0 bg-black/60 opacity-0 transition-opacity group-hover:opacity-100 flex items-center justify-center">
+                            <Button
+                                size="icon"
+                                variant="destructive"
+                                onclick={() => removeImage(index)}
+                                disabled={loading}
+                                class="rounded-full h-10 w-10"
+                            >
+                                <X class="h-5 w-5" />
+                            </Button>
+                        </div>
+                         <div class="absolute bottom-0 left-0 right-0 p-2 bg-black/60 backdrop-blur-sm translate-y-full group-hover:translate-y-0 transition-transform">
+                             <p class="truncate text-xs text-white text-center">{image.name}</p>
+                         </div>
+                    </div>
+                {/each}
+
+                 <!-- Add more button -->
+                 <button
+                    class="relative aspect-square rounded-2xl border-2 border-dashed border-muted-foreground/20 hover:border-primary/50 hover:bg-primary/5 transition-all flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary"
+                    onclick={() => fileInput?.click()}
+                 >
+                    <Upload class="h-8 w-8" />
+                    <span class="text-xs font-medium">Add More</span>
+                    <Input
+                        bind:ref={fileInput}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onchange={handleFileSelect}
+                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                 </button>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 pt-4">
+                <Button onclick={onextract} disabled={loading} size="lg" class="flex-1 gap-2 rounded-full shadow-lg shadow-primary/20">
+                    <Sparkles class="h-4 w-4" />
+                    {loading ? 'Extracting...' : 'Extract Info'}
+                </Button>
+                <Button
+                    onclick={onassess}
+                    disabled={loading}
+                    variant="secondary"
+                    size="lg"
+                    class="flex-1 gap-2 rounded-full"
+                >
+                    <Sparkles class="h-4 w-4" />
+                    {loading ? 'Assessing...' : 'Assess Directly'}
+                </Button>
+            </div>
+        </div>
+    {/if}
+</div>
