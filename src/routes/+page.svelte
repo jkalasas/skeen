@@ -159,7 +159,7 @@
 		toast.promise(promise, {
 			loading: 'Saving product...',
 			success: 'Product saved to your collection!',
-			error: (err) => err.message || 'Failed to save product'
+			error: (err) => (err instanceof Error ? err.message : 'Failed to save product')
 		});
 	}
 

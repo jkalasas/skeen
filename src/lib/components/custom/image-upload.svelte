@@ -237,6 +237,7 @@
                         onclick={capturePhoto}
                         disabled={loading || !videoReady}
                         class="h-16 w-16 rounded-full border-4 border-white flex items-center justify-center bg-white/20 hover:bg-white/40 transition-all active:scale-95"
+                        aria-label="Capture Photo"
                     >
                         <div class="h-12 w-12 rounded-full bg-white"></div>
                     </button>

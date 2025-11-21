@@ -216,28 +216,26 @@
 	}
 </script>
 
-<Card.Root class="relative border-2">
+<div class="glass-card relative rounded-2xl transition-all hover:scale-[1.01] hover:shadow-xl duration-300 bg-white/40 dark:bg-black/40 border-white/20">
 	<Button
 		variant="ghost"
-		size="sm"
+		size="icon"
 		onclick={onremove}
-		class="absolute top-3 right-3 z-10"
+		class="absolute top-3 right-3 z-20 rounded-full h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
 		disabled={loading}
 	>
-		<Trash2 class="h-4 w-4 text-destructive" />
+		<Trash2 class="h-4 w-4" />
 	</Button>
 
-	<Card.Header>
-		<Card.Title>Product {index + 1}</Card.Title>
-	</Card.Header>
+	<div class="p-4 sm:p-6 space-y-5">
+        <h3 class="font-bold text-lg pr-8 text-gradient">Product {index + 1}</h3>
 
-	<Card.Content>
 		{#if onsearchproducts}
-			<div class="mb-4">
+			<div class="mb-2">
 				<Button
 					onclick={onsearchproducts}
 					variant="outline"
-					class="w-full gap-2"
+					class="w-full gap-2 rounded-full border-dashed hover:border-primary/50 hover:text-primary"
 					disabled={loading}
 					size="sm"
 				>
@@ -248,18 +246,18 @@
 		{/if}
 
 		<Tabs.Root bind:value={activeTab}>
-			<Tabs.List class="grid w-full grid-cols-2 bg-muted/50 p-1">
-				<Tabs.Trigger value="image">📸 Image</Tabs.Trigger>
-				<Tabs.Trigger value="manual">✍️ Manual</Tabs.Trigger>
+			<Tabs.List class="grid w-full grid-cols-2 bg-muted/30 p-1 rounded-full mb-4">
+				<Tabs.Trigger value="image" class="rounded-full data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:shadow-sm">📸 Image</Tabs.Trigger>
+				<Tabs.Trigger value="manual" class="rounded-full data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:shadow-sm">✍️ Manual</Tabs.Trigger>
 			</Tabs.List>
 
 			<!-- Image Upload Tab -->
-			<Tabs.Content value="image">
+			<Tabs.Content value="image" class="mt-0">
 				<div class="space-y-4">
 					<!-- File Upload and Camera Buttons -->
 					<div class="grid gap-3 sm:grid-cols-2">
 						<div class="space-y-2">
-							<Label class="text-sm font-semibold">Choose from Gallery</Label>
+							<Label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Gallery</Label>
 							<input
 								bind:this={fileInput}
 								type="file"
@@ -271,7 +269,7 @@
 							<Button
 								variant="outline"
 								onclick={() => fileInput?.click()}
-								class="w-full gap-2"
+								class="w-full gap-2 rounded-xl h-12 hover:bg-primary/5 hover:border-primary/30"
 								disabled={loading}
 							>
 								<Upload class="h-4 w-4" />
@@ -280,15 +278,15 @@
 						</div>
 
 						<div class="space-y-2">
-							<Label class="text-sm font-semibold">Live Camera</Label>
+							<Label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Camera</Label>
 							<Button
 								onclick={() => (isCameraActive ? stopCamera() : startCamera())}
 								variant="outline"
-								class="w-full gap-2"
+								class="w-full gap-2 rounded-xl h-12 hover:bg-primary/5 hover:border-primary/30"
 								disabled={loading}
 							>
 								<Camera class="h-4 w-4" />
-								{isCameraActive ? 'Close Camera' : 'Open Camera'}
+								{isCameraActive ? 'Close' : 'Open'}
 							</Button>
 						</div>
 					</div>
@@ -305,15 +303,15 @@
 
 					<!-- Camera View -->
 					{#if isCameraActive}
-						<div class="space-y-3">
+						<div class="space-y-3 animate-in fade-in">
 							<div
-								class="relative aspect-[4/3] overflow-hidden rounded-lg border-2 bg-muted shadow-inner"
+								class="relative aspect-[4/3] overflow-hidden rounded-2xl border-2 border-primary/20 bg-black shadow-inner"
 							>
 								{#if !videoReady}
 									<div class="absolute inset-0 flex items-center justify-center bg-black/90">
 										<div class="flex flex-col items-center gap-2">
-											<Camera class="h-6 w-6 animate-pulse text-white" />
-											<p class="text-xs text-white">Loading camera...</p>
+											<Camera class="h-6 w-6 animate-pulse text-primary" />
+											<p class="text-xs text-white/80">Initializing...</p>
 										</div>
 									</div>
 								{/if}
@@ -332,7 +330,7 @@
 									onclick={capturePhoto}
 									disabled={loading || !videoReady}
 									size="sm"
-									class="flex-1 gap-2"
+									class="flex-1 gap-2 rounded-full shadow-lg shadow-primary/20"
 								>
 									<Camera class="h-3.5 w-3.5" />
 									Capture
@@ -342,53 +340,48 @@
 									variant="outline"
 									size="sm"
 									disabled={loading || !videoReady}
-									class="gap-2"
+									class="gap-2 rounded-full"
 								>
 									<SwitchCamera class="h-3.5 w-3.5" />
 									Switch
 								</Button>
-								{#if !loading}
-									<Button onclick={stopCamera} variant="outline" size="sm" class="gap-2">
-										<X class="h-3.5 w-3.5" />
-										Close
-									</Button>
-								{/if}
 							</div>
 						</div>
 					{/if}
 
 					<!-- Image Previews -->
 					{#if images.length > 0}
-						<div class="space-y-3">
+						<div class="space-y-3 animate-in fade-in">
 							<div class="flex items-center gap-2">
-								<Badge variant="secondary" class="gap-1.5">
+								<Badge variant="secondary" class="gap-1.5 rounded-full px-2.5">
 									<ImageIcon class="h-3 w-3" />
 									{images.length}
-									{images.length === 1 ? 'image' : 'images'}
 								</Badge>
 							</div>
 							<div class="grid grid-cols-2 gap-2">
 								{#each imagePreviews as preview, i (i)}
-									<div class="relative">
+									<div class="relative group">
 										<img
 											src={preview}
 											alt="Preview {i + 1}"
-											class="h-24 w-full rounded object-cover"
+											class="h-24 w-full rounded-xl object-cover border border-border"
 										/>
-										<Button
-											variant="destructive"
-											size="sm"
-											onclick={() => removeImage(i)}
-											class="absolute top-1 right-1 h-6 w-6 p-0"
-											disabled={loading}
-										>
-											<X class="h-3 w-3" />
-										</Button>
+										<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center">
+                                            <Button
+                                                variant="destructive"
+                                                size="icon"
+                                                onclick={() => removeImage(i)}
+                                                class="h-8 w-8 rounded-full"
+                                                disabled={loading}
+                                            >
+                                                <X class="h-4 w-4" />
+                                            </Button>
+                                        </div>
 									</div>
 								{/each}
 							</div>
 
-							<Button onclick={handleExtractFromImages} disabled={loading} class="w-full gap-2">
+							<Button onclick={handleExtractFromImages} disabled={loading} class="w-full gap-2 rounded-full shadow-md">
 								<ImageIcon class="h-4 w-4" />
 								{loading ? 'Extracting...' : 'Extract Product Info'}
 							</Button>
@@ -398,51 +391,60 @@
 			</Tabs.Content>
 
 			<!-- Manual Entry Tab -->
-			<Tabs.Content value="manual">
+			<Tabs.Content value="manual" class="mt-0">
 				<div class="space-y-4">
 					<div>
-						<Label for="name-{index}">
-							<Package class="mr-1 inline h-3.5 w-3.5" />
+						<Label for="name-{index}" class="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">
 							Product Name *
 						</Label>
-						<Input
-							id="name-{index}"
-							bind:value={name}
-							placeholder="e.g., CeraVe Moisturizing Cream"
-							disabled={loading}
-						/>
+						<div class="relative">
+                            <Package class="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+						    <Input
+							    id="name-{index}"
+							    bind:value={name}
+							    placeholder="e.g., CeraVe Moisturizing Cream"
+							    disabled={loading}
+                                class="pl-9 rounded-xl bg-white/50 dark:bg-black/20 border-primary/10 focus-visible:ring-primary/50"
+						    />
+                        </div>
 					</div>
 
 					<div>
-						<Label for="description-{index}">
-							<FileText class="mr-1 inline h-3.5 w-3.5" />
-							Description (optional)
+						<Label for="description-{index}" class="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">
+							Description
 						</Label>
-						<Textarea
-							id="description-{index}"
-							bind:value={description}
-							placeholder="e.g., Daily moisturizing cream for dry skin"
-							disabled={loading}
-							rows={2}
-						/>
+                        <div class="relative">
+                            <FileText class="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+						    <Textarea
+							    id="description-{index}"
+							    bind:value={description}
+							    placeholder="Short description"
+							    disabled={loading}
+							    rows={2}
+                                class="pl-9 rounded-xl bg-white/50 dark:bg-black/20 border-primary/10 focus-visible:ring-primary/50 min-h-[80px]"
+						    />
+                        </div>
 					</div>
 
 					<div>
-						<Label for="ingredients-{index}">
-							<FlaskConical class="mr-1 inline h-3.5 w-3.5" />
-							Ingredients (comma-separated, optional)
+						<Label for="ingredients-{index}" class="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">
+							Ingredients
 						</Label>
-						<Textarea
-							id="ingredients-{index}"
-							bind:value={ingredientsText}
-							placeholder="e.g., Hyaluronic Acid, Ceramides, Niacinamide"
-							disabled={loading}
-							rows={2}
-						/>
-						<p class="mt-1 text-xs text-muted-foreground">Separate each ingredient with a comma</p>
+                        <div class="relative">
+                            <FlaskConical class="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+						    <Textarea
+							    id="ingredients-{index}"
+							    bind:value={ingredientsText}
+							    placeholder="e.g., Hyaluronic Acid, Ceramides"
+							    disabled={loading}
+							    rows={2}
+                                class="pl-9 rounded-xl bg-white/50 dark:bg-black/20 border-primary/10 focus-visible:ring-primary/50 min-h-[80px]"
+						    />
+                        </div>
+						<p class="mt-1 text-[10px] text-muted-foreground text-right">Comma-separated</p>
 					</div>
 
-					<Button onclick={handleManualSubmit} disabled={loading || !name} class="w-full">
+					<Button onclick={handleManualSubmit} disabled={loading || !name} class="w-full rounded-full shadow-md">
 						{loading ? 'Saving...' : 'Save Product'}
 					</Button>
 				</div>
@@ -451,15 +453,12 @@
 
 		<!-- Product Preview -->
 		{#if product}
-			<div class="mt-4 space-y-2 rounded-lg border bg-muted/20 p-3">
+			<div class="mt-4 space-y-2 rounded-xl border border-primary/20 bg-primary/5 p-4 animate-in fade-in slide-in-from-bottom-2">
 				<div class="flex items-center gap-2">
-					<Badge variant="secondary">Saved</Badge>
-					<span class="font-semibold">{product.name}</span>
+					<Badge variant="secondary" class="bg-white/50 dark:bg-black/20">Saved</Badge>
+					<span class="font-semibold truncate">{product.name}</span>
 				</div>
-				{#if product.description}
-					<p class="text-xs text-muted-foreground">{product.description}</p>
-				{/if}
 			</div>
 		{/if}
-	</Card.Content>
-</Card.Root>
+	</div>
+</div>

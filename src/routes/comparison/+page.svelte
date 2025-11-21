@@ -2,7 +2,7 @@
 	import * as Alert from '$lib/components/ui/alert';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Button } from '$lib/components/ui/button';
-	import { GitCompare, AlertCircle, User, Info, Plus } from '@lucide/svelte';
+	import { GitCompare, AlertCircle, User, Info, Plus, LogIn } from '@lucide/svelte';
 	import type { BaseAIClient, Product, ProductComparison } from '$lib/ai/base';
 	import MultiProductEntry from '$lib/components/custom/multi-product-entry.svelte';
 	import ProductInfo from '$lib/components/custom/product-info.svelte';
@@ -11,6 +11,7 @@
 	import AuthGuard from '$lib/components/custom/auth-guard.svelte';
 	import { profileStore } from '$lib/stores/profile.svelte';
 	import { productsStore } from '$lib/stores/products.svelte';
+	import { authStore } from '$lib/stores/auth.svelte';
 	import type { PageData } from './$types';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -134,25 +135,25 @@
 <!-- Profile Prompt Dialog -->
 {#if showProfilePrompt}
 	<Dialog.Root bind:open={showProfilePrompt}>
-		<Dialog.Content class="sm:max-w-md">
+		<Dialog.Content class="sm:max-w-md glass border-none shadow-2xl">
 			<Dialog.Header>
 				<div class="mb-4 flex justify-center">
-					<div class="rounded-full bg-primary/10 p-4">
-						<User class="h-8 w-8 text-primary" />
+					<div class="rounded-full bg-primary/20 p-6 ring-4 ring-primary/10">
+						<User class="h-10 w-10 text-primary" />
 					</div>
 				</div>
-				<Dialog.Title class="text-center text-xl">Complete Your Profile First</Dialog.Title>
-				<Dialog.Description class="text-center">
+				<Dialog.Title class="text-center text-2xl font-bold">Complete Your Profile</Dialog.Title>
+				<Dialog.Description class="text-center text-lg pt-2">
 					To get personalized product comparisons tailored to your unique skin needs, please
 					complete your profile first.
 				</Dialog.Description>
 			</Dialog.Header>
-			<Dialog.Footer class="flex-col gap-2 sm:flex-col">
-				<Button onclick={goToProfile} class="w-full gap-2">
-					<User class="h-4 w-4" />
-					Complete Profile
+			<Dialog.Footer class="flex-col gap-3 sm:flex-col mt-4">
+				<Button onclick={goToProfile} class="w-full gap-2 rounded-full text-lg h-12 shadow-lg shadow-primary/20">
+					<User class="h-5 w-5" />
+					Complete Profile Now
 				</Button>
-				<Button variant="ghost" onclick={() => (showProfilePrompt = false)} class="w-full">
+				<Button variant="ghost" onclick={() => (showProfilePrompt = false)} class="w-full rounded-full">
 					Maybe Later
 				</Button>
 			</Dialog.Footer>
@@ -170,55 +171,60 @@
 	}}
 />
 
-<AuthGuard>
-	<div class="container mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
-		<!-- Hero Section -->
-		<div
-			class="mb-8 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background p-8 sm:p-10"
-		>
-			<div class="mb-4 flex items-center gap-3">
-				<div class="rounded-xl bg-primary/20 p-3">
-					<GitCompare class="h-8 w-8 text-primary" />
-				</div>
-				<h1 class="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-					Product Comparison
-				</h1>
-			</div>
-			<p class="max-w-2xl text-lg text-muted-foreground">
-				Compare 2-{maxProducts} similar skincare products side-by-side to find the best match for your
-				skin. Upload images or enter details manually.
-			</p>
-		</div>
+<div class="container mx-auto max-w-7xl px-4">
+    <!-- Hero Section -->
+    <div class="py-12 sm:py-16 text-center space-y-6 animate-in fade-in zoom-in-95 duration-1000">
+        <div class="inline-flex items-center justify-center p-3 rounded-2xl bg-primary/10 mb-4 ring-1 ring-primary/20 shadow-inner">
+            <GitCompare class="h-10 w-10 text-primary" />
+        </div>
+        <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-foreground drop-shadow-sm">
+            <span class="text-gradient">Compare</span> & Decide.
+        </h1>
+        <p class="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            Side-by-side analysis of 2-{maxProducts} products. Find the perfect match for your skin.
+        </p>
+        {#if authStore.initialized && !authStore.isAuthenticated}
+            <div class="mt-8 flex justify-center">
+                 <Button onclick={() => authStore.signInWithGoogle()} size="lg" class="rounded-full gap-2 shadow-lg shadow-primary/20 animate-pulse-slow">
+                    <LogIn class="h-5 w-5" />
+                    Sign In to Compare
+                </Button>
+            </div>
+        {/if}
+    </div>
 
+    <AuthGuard>
 		<!-- Profile Incomplete Banner -->
 		{#if profileStore.initialized && !profileStore.isComplete}
-			<Alert.Root class="mb-6 border-blue-500/50 bg-blue-500/10">
-				<Info class="h-4 w-4 text-blue-600" />
-				<Alert.Title>Complete your profile for personalized comparisons</Alert.Title>
-				<Alert.Description class="flex items-center justify-between gap-4">
-					<span>
-						Get tailored product comparisons based on your skin type, concerns, and preferences.
-					</span>
-					<Button variant="outline" size="sm" onclick={goToProfile} class="shrink-0 gap-2">
-						<User class="h-3.5 w-3.5" />
-						Complete Profile
-					</Button>
-				</Alert.Description>
-			</Alert.Root>
+            <div class="mb-8 animate-in slide-in-from-top-4">
+                <Alert.Root class="glass border-l-4 border-l-primary border-y-0 border-r-0 rounded-r-xl bg-primary/5">
+                    <Info class="h-5 w-5 text-primary" />
+                    <Alert.Title class="font-bold text-primary">Personalize Your Experience</Alert.Title>
+                    <Alert.Description class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-2">
+                        <span class="text-muted-foreground">
+                             Get tailored product comparisons based on your skin type, concerns, and preferences.
+                        </span>
+                        <Button size="sm" onclick={goToProfile} class="shrink-0 gap-2 rounded-full shadow-md">
+                            <User class="h-3.5 w-3.5" />
+                            Complete Profile
+                        </Button>
+                    </Alert.Description>
+                </Alert.Root>
+            </div>
 		{/if}
 
 		<!-- Product Entry Forms -->
-		<div class="mb-8 space-y-4">
-			<div class="flex items-center justify-between">
-				<h2 class="text-xl font-semibold">
-					Products to Compare ({validProductCount}/{products.length})
-				</h2>
+		<div class="glass rounded-3xl p-6 sm:p-8 mb-8 shadow-2xl ring-1 ring-white/20 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
+			<div class="flex items-center justify-between mb-6">
+				<h2 class="text-2xl font-bold flex items-center gap-2">
+                    <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-extrabold">{validProductCount}/{products.length}</span>
+                    Products
+                </h2>
 				<Button
 					onclick={addProduct}
 					variant="outline"
-					size="sm"
 					disabled={products.length >= maxProducts || loading}
-					class="gap-2"
+					class="gap-2 rounded-full border-primary/20 hover:border-primary hover:bg-primary/5"
 				>
 					<Plus class="h-4 w-4" />
 					Add Product
@@ -239,39 +245,45 @@
 					/>
 				{/each}
 			</div>
-		</div>
 
-		<!-- Action Buttons -->
-		<div class="mb-8 flex flex-wrap gap-4">
-			<Button
-				onclick={compareProducts}
-				disabled={loading || validProductCount < 2}
-				class="gap-2"
-				size="lg"
-			>
-				<GitCompare class="h-5 w-5" />
-				{loading ? 'Comparing...' : 'Compare Products'}
-			</Button>
-			<Button onclick={reset} variant="outline" size="lg" disabled={loading}>Reset All</Button>
+            <!-- Action Buttons (Moved inside the glass card for better grouping) -->
+            <div class="mt-8 pt-8 border-t border-border/50 flex flex-wrap gap-4 justify-end">
+                <Button onclick={reset} variant="ghost" size="lg" disabled={loading} class="rounded-full hover:bg-destructive/10 hover:text-destructive">
+                    Reset All
+                </Button>
+                <Button
+                    onclick={compareProducts}
+                    disabled={loading || validProductCount < 2}
+                    class="gap-2 rounded-full shadow-lg shadow-primary/20"
+                    size="lg"
+                >
+                    <GitCompare class="h-5 w-5" />
+                    {loading ? 'Analyzing...' : 'Compare Products'}
+                </Button>
+            </div>
 		</div>
 
 		<!-- Error Display -->
 		{#if error}
-			<Alert.Root variant="destructive" class="mb-6 border-destructive/50">
-				<AlertCircle class="h-4 w-4" />
-				<Alert.Title>Error</Alert.Title>
-				<Alert.Description>{error}</Alert.Description>
-			</Alert.Root>
+            <div class="mb-8 animate-in fade-in slide-in-from-bottom-4">
+                <Alert.Root variant="destructive" class="border-destructive/20 bg-destructive/10 text-destructive rounded-2xl">
+                    <AlertCircle class="h-5 w-5" />
+                    <Alert.Title class="text-lg font-semibold">Oops!</Alert.Title>
+                    <Alert.Description>{error}</Alert.Description>
+                </Alert.Root>
+            </div>
 		{/if}
 
 		<!-- Product Information -->
 		{#if comparison}
-			<div class="mb-6">
-				<h2 class="mb-4 text-xl font-semibold">Product Details</h2>
+			<div class="mb-8 space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
+				<h2 class="text-2xl font-bold">Product Details</h2>
 				<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 					{#each products as product (product?.name)}
 						{#if product}
-							<ProductInfo {product} />
+                            <div class="glass-card rounded-2xl overflow-hidden">
+							    <ProductInfo {product} />
+                            </div>
 						{/if}
 					{/each}
 				</div>
@@ -280,7 +292,9 @@
 
 		<!-- Comparison Results -->
 		{#if comparison}
-			<ComparisonResults {comparison} />
+            <div class="glass-card rounded-3xl overflow-hidden ring-2 ring-primary/20 shadow-primary/10 shadow-2xl animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
+			    <ComparisonResults {comparison} />
+            </div>
 		{/if}
-	</div>
-</AuthGuard>
+    </AuthGuard>
+</div>
