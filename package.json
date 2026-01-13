@@ -22,6 +22,7 @@
 		"@sveltejs/kit": "^2.43.2",
 		"@sveltejs/vite-plugin-svelte": "^6.2.0",
 		"@tailwindcss/vite": "^4.1.13",
+		"@tauri-apps/cli": "^2",
 		"@types/node": "^24.9.1",
 		"bits-ui": "^2.11.0",
 		"clsx": "^2.1.1",
@@ -45,6 +46,7 @@
 		"vite": "^7.1.7"
 	},
 	"dependencies": {
+		"@tauri-apps/api": "^2",
 		"firebase": "^12.5.0",
 		"mime": "^4.1.0"
 	}
