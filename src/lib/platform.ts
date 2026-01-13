@@ -56,8 +56,8 @@ export const platform = {
 export async function openUrl(url: string): Promise<void> {
 	if (isTauri()) {
 		// Dynamically import Tauri's opener plugin
-		const { open } = await import('@tauri-apps/plugin-opener');
-		await open(url);
+		const { openUrl: tauriOpenUrl } = await import('@tauri-apps/plugin-opener');
+		await tauriOpenUrl(url);
 	} else if (browser) {
 		window.open(url, '_blank', 'noopener,noreferrer');
 	}
