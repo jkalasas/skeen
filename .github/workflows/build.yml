@@ -23,7 +23,13 @@ env:
   PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
 
 jobs:
+  test:
+    name: Run Tests
+    uses: ./.github/workflows/test.yml
+    secrets: inherit
+
   build-desktop:
+    needs: test
     strategy:
       fail-fast: false
       matrix:
@@ -91,6 +97,7 @@ jobs:
             src-tauri/target/release/bundle/nsis/*.exe
 
   build-android:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
