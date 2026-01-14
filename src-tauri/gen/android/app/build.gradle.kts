@@ -13,6 +13,13 @@ val tauriProperties = Properties().apply {
     }
 }
 
+val localProperties = Properties().apply {
+    val propFile = rootProject.file("local.properties")
+    if (propFile.exists()) {
+        propFile.inputStream().use { load(it) }
+    }
+}
+
 android {
     compileSdk = 36
     namespace = "dev.skeen.app"
@@ -23,6 +30,15 @@ android {
         targetSdk = 36
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
         versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")
+    }
+    signingConfigs {
+        create("release") {
+            val keystorePath = localProperties.getProperty("ANDROID_KEYSTORE_PATH") ?: "../../../skeen-release.keystore"
+            storeFile = file(keystorePath)
+            storePassword = localProperties.getProperty("ANDROID_KEYSTORE_PASSWORD") ?: ""
+            keyAlias = localProperties.getProperty("ANDROID_KEY_ALIAS") ?: "skeen"
+            keyPassword = localProperties.getProperty("ANDROID_KEY_PASSWORD") ?: ""
+        }
     }
     buildTypes {
         getByName("debug") {
@@ -37,6 +53,7 @@ android {
             }
         }
         getByName("release") {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             proguardFiles(
                 *fileTree(".") { include("**/*.pro") }

@@ -2,3 +2,7 @@
 # will have compiled files and executables
 /target/
 /gen/schemas
+
+# Keystore files (signing keys)
+*.keystore
+*.jks
