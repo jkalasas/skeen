@@ -7,7 +7,8 @@ pub fn run() {
     .plugin(tauri_plugin_deep_link::init())
     .invoke_handler(tauri::generate_handler![
       oauth::get_oauth_redirect_uri,
-      oauth::start_oauth_server
+      oauth::start_oauth_server,
+      oauth::is_mobile_platform
     ])
     .setup(|app| {
       if cfg!(debug_assertions) {

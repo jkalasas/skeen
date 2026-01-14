@@ -27,6 +27,22 @@ function buildGoogleOAuthUrl(redirectUri: string, nonce: string): string {
 	return `${GOOGLE_AUTH_ENDPOINT}?${params.toString()}`;
 }
 
+function extractIdTokenFromUrl(url: string): string | null {
+	const hashIndex = url.indexOf('#');
+	if (hashIndex !== -1) {
+		const fragment = url.substring(hashIndex + 1);
+		const params = new URLSearchParams(fragment);
+		return params.get('id_token');
+	}
+	const queryIndex = url.indexOf('?');
+	if (queryIndex !== -1) {
+		const query = url.substring(queryIndex + 1);
+		const params = new URLSearchParams(query);
+		return params.get('id_token');
+	}
+	return null;
+}
+
 class AuthStore {
 	private user = $state<User | null>(null);
 	private _loading = $state(true);
@@ -60,7 +76,6 @@ class AuthStore {
 	init() {
 		if (!browser || this._initialized) return;
 
-		// Set a timeout to ensure we don't stay in loading state forever
 		const timeout = setTimeout(() => {
 			if (!this._initialized) {
 				console.warn('Auth initialization timeout - forcing completion');
@@ -85,13 +100,11 @@ class AuthStore {
 					this._initialized = true;
 				},
 				(error) => {
-					// Handle auth state change errors
 					clearTimeout(timeout);
 					this._completeInitialization(error);
 				}
 			);
 		} catch (error) {
-			// Handle errors in getting auth instance or setting up listener
 			clearTimeout(timeout);
 			this._completeInitialization(error);
 		}
@@ -123,6 +136,18 @@ class AuthStore {
 	}
 
 	private async signInWithGoogleTauri() {
+		const { invoke } = await import('@tauri-apps/api/core');
+
+		const isMobile = await invoke<boolean>('is_mobile_platform');
+
+		if (isMobile) {
+			await this.signInWithGoogleMobile();
+		} else {
+			await this.signInWithGoogleDesktop();
+		}
+	}
+
+	private async signInWithGoogleDesktop() {
 		const { invoke } = await import('@tauri-apps/api/core');
 		const { listen } = await import('@tauri-apps/api/event');
 
@@ -158,6 +183,56 @@ class AuthStore {
 			});
 
 			invoke('start_oauth_server').catch(reject);
+
+			openUrl(buildGoogleOAuthUrl(redirectUri, nonce));
+		});
+	}
+
+	private async signInWithGoogleMobile() {
+		const { invoke } = await import('@tauri-apps/api/core');
+		const { onOpenUrl } = await import('@tauri-apps/plugin-deep-link');
+
+		const redirectUri = await invoke<string>('get_oauth_redirect_uri');
+		const nonce = crypto.randomUUID();
+
+		return new Promise<void>((resolve, reject) => {
+			let resolved = false;
+
+			const timeoutId = setTimeout(() => {
+				if (!resolved) {
+					resolved = true;
+					reject(new Error('OAuth timeout - no response received'));
+				}
+			}, 60000);
+
+			onOpenUrl(async (urls) => {
+				if (resolved) return;
+
+				for (const url of urls) {
+					if (url.startsWith('skeen://oauth/callback')) {
+						try {
+							const idToken = extractIdTokenFromUrl(url);
+
+							if (idToken) {
+								clearTimeout(timeoutId);
+								resolved = true;
+
+								const auth = getAuthInstance();
+								const credential = GoogleAuthProvider.credential(idToken);
+								const result = await signInWithCredential(auth, credential);
+								this.user = result.user;
+								resolve();
+								return;
+							}
+						} catch (error) {
+							clearTimeout(timeoutId);
+							resolved = true;
+							reject(error);
+							return;
+						}
+					}
+				}
+			});
 
 			openUrl(buildGoogleOAuthUrl(redirectUri, nonce));
 		});

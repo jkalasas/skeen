@@ -1,7 +1,7 @@
 {
 	"$schema": "../gen/schemas/desktop-schema.json",
 	"identifier": "default",
-	"description": "Default permissions for Skeen desktop app",
+	"description": "Default permissions for Skeen app",
 	"windows": ["main"],
-	"permissions": ["core:default", "opener:default"]
+	"permissions": ["core:default", "opener:default", "deep-link:default"]
 }

@@ -46,7 +46,13 @@
 		"deep-link": {
 			"desktop": {
 				"schemes": ["skeen"]
-			}
+			},
+			"mobile": [
+				{
+					"scheme": ["skeen"],
+					"appLink": false
+				}
+			]
 		}
 	}
 }

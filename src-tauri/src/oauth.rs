@@ -1,9 +1,7 @@
-use std::sync::mpsc;
-use std::thread;
 use tauri::{AppHandle, Emitter};
-use tiny_http::{Response, Server};
 
 const OAUTH_CALLBACK_PORT: u16 = 9274;
+const MOBILE_REDIRECT_URI: &str = "https://jkalasas.github.io/skeen/oauth-callback.html";
 
 const CALLBACK_HTML: &str = r#"<!DOCTYPE html>
 <html>
@@ -54,11 +52,25 @@ const SUCCESS_HTML: &str = r#"<!DOCTYPE html>
 
 #[tauri::command]
 pub fn get_oauth_redirect_uri() -> String {
-    format!("http://127.0.0.1:{}/callback", OAUTH_CALLBACK_PORT)
+    if cfg!(target_os = "android") || cfg!(target_os = "ios") {
+        MOBILE_REDIRECT_URI.to_string()
+    } else {
+        format!("http://127.0.0.1:{}/callback", OAUTH_CALLBACK_PORT)
+    }
 }
 
 #[tauri::command]
+pub fn is_mobile_platform() -> bool {
+    cfg!(target_os = "android") || cfg!(target_os = "ios")
+}
+
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+#[tauri::command]
 pub async fn start_oauth_server(app: AppHandle) -> Result<(), String> {
+    use std::sync::mpsc;
+    use std::thread;
+    use tiny_http::{Response, Server};
+
     let (tx, rx) = mpsc::channel::<()>();
 
     thread::spawn(move || {
@@ -97,5 +109,11 @@ pub async fn start_oauth_server(app: AppHandle) -> Result<(), String> {
     });
 
     let _ = rx.recv();
+    Ok(())
+}
+
+#[cfg(any(target_os = "android", target_os = "ios"))]
+#[tauri::command]
+pub async fn start_oauth_server(_app: AppHandle) -> Result<(), String> {
     Ok(())
 }
