@@ -42,8 +42,9 @@
 
 	// Reset to page 1 when search changes
 	$effect(() => {
-		searchQuery;
-		currentPage = 1;
+		if (searchQuery !== undefined) {
+			currentPage = 1;
+		}
 	});
 
 	onMount(() => {
@@ -188,7 +189,7 @@
 							<ChevronLeft class="h-4 w-4" />
 						</Button>
 
-						{#each getPaginationRange() as page}
+						{#each getPaginationRange() as page, i (i)}
 							{#if page === '...'}
 								<span class="px-2 text-muted-foreground">…</span>
 							{:else}

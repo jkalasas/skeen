@@ -9,7 +9,6 @@ import {
 	query,
 	orderBy,
 	where,
-	type DocumentData,
 	Timestamp
 } from 'firebase/firestore';
 import type { Product, ProductAssessment } from '$lib/ai/base';

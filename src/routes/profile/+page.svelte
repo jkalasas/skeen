@@ -1,7 +1,6 @@
 <script lang="ts">
 	import ProfileForm from '$lib/components/custom/profile-form.svelte';
 	import AuthGuard from '$lib/components/custom/auth-guard.svelte';
-	import * as Alert from '$lib/components/ui/alert';
 	import { profileStore } from '$lib/stores/profile.svelte';
 	import type { UserProfile } from '$lib/types/profile';
 	import { User } from '@lucide/svelte';

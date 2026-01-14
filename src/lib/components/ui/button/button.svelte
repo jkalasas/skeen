@@ -42,6 +42,8 @@
 </script>
 
 <script lang="ts">
+	import { resolveRoute } from '$app/paths';
+
 	let {
 		class: className,
 		variant = 'default',
@@ -53,6 +55,9 @@
 		children,
 		...restProps
 	}: ButtonProps = $props();
+
+	// Resolve the route for internal navigation
+	const resolvedHref = $derived(href ? resolveRoute(href as '/') : undefined);
 </script>
 
 {#if href}
@@ -60,7 +65,7 @@
 		bind:this={ref}
 		data-slot="button"
 		class={cn(buttonVariants({ variant, size }), className)}
-		href={disabled ? undefined : href}
+		href={disabled ? undefined : resolvedHref}
 		aria-disabled={disabled}
 		role={disabled ? 'link' : undefined}
 		tabindex={disabled ? -1 : undefined}

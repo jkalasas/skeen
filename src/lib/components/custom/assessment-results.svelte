@@ -48,7 +48,7 @@
 				Strengths
 			</h3>
 			<ul class="space-y-3">
-				{#each assessment.pros as pro}
+				{#each assessment.pros as pro, i (i)}
 					<li class="flex items-start gap-3">
 						<CheckCircle2 class="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400" />
 						<span class="text-sm leading-relaxed">{pro}</span>
@@ -68,7 +68,7 @@
 				Concerns
 			</h3>
 			<ul class="space-y-3">
-				{#each assessment.cons as con}
+				{#each assessment.cons as con, i (i)}
 					<li class="flex items-start gap-3">
 						<XCircle class="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600 dark:text-red-400" />
 						<span class="text-sm leading-relaxed">{con}</span>

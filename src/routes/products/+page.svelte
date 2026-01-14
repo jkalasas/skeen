@@ -3,7 +3,6 @@
 	import { productsStore } from '$lib/stores/products.svelte';
 	import type { StoredProduct } from '$lib/db/firestore-products';
 	import type { Product } from '$lib/ai/base';
-	import ProductInfo from '$lib/components/custom/product-info.svelte';
 	import ImageUpload from '$lib/components/custom/image-upload.svelte';
 	import ProductEntry from '$lib/components/custom/product-entry.svelte';
 	import * as Alert from '$lib/components/ui/alert';
@@ -69,8 +68,9 @@
 
 	// Reset to page 1 when search changes
 	$effect(() => {
-		searchQuery;
-		currentPage = 1;
+		if (searchQuery !== undefined) {
+			currentPage = 1;
+		}
 	});
 
 	onMount(() => {
@@ -345,7 +345,7 @@
 								<div class="mb-3">
 									<p class="mb-1 text-xs font-medium text-muted-foreground">Key Ingredients:</p>
 									<div class="flex flex-wrap gap-1">
-										{#each product.ingredients.slice(0, 3) as ingredient}
+										{#each product.ingredients.slice(0, 3) as ingredient, i (i)}
 											<span
 												class="rounded-md bg-secondary px-2 py-0.5 text-xs text-secondary-foreground"
 											>
@@ -390,7 +390,7 @@
 					</Button>
 
 					<div class="flex items-center gap-1">
-						{#each Array.from({ length: totalPages }, (_, i) => i + 1) as page}
+						{#each Array.from({ length: totalPages }, (_, i) => i + 1) as page (page)}
 							{#if page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)}
 								<Button
 									variant={currentPage === page ? 'default' : 'outline'}

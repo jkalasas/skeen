@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '../app.css';
 	import SkeenLogo from '$lib/assets/skeen.svg';
+	import { resolveRoute } from '$app/paths';
 	import { page } from '$app/state';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { History, User, GitCompare, Heart, Package, LogOut, LogIn } from '@lucide/svelte';
@@ -62,7 +63,7 @@
 		>
 			<div class="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
 				<div class="flex h-16 items-center justify-between">
-					<a href="/" class="flex items-center text-xl font-bold">
+					<a href={resolveRoute('/')} class="flex items-center text-xl font-bold">
 						<!-- <Sparkles class="h-6 w-6 text-primary" /> -->
 						<img src={SkeenLogo} alt="Skeen Logo" class="h-6 w-6" />
 						<span class="text-2xl">keen</span>

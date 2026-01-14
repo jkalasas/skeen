@@ -226,7 +226,7 @@
 			</div>
 
 			<div class="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
-				{#each products as product, index (index)}
+				{#each products as _product, index (index)}
 					<MultiProductEntry
 						bind:this={productComponents[index]}
 						bind:product={products[index]}

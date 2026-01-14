@@ -4,15 +4,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Badge } from '$lib/components/ui/badge';
-	import {
-		Camera,
-		Upload,
-		SwitchCamera,
-		X,
-		Sparkles,
-		RefreshCw,
-		Image as ImageIcon
-	} from '@lucide/svelte';
+	import { Camera, SwitchCamera, X, Sparkles, RefreshCw, Image as ImageIcon } from '@lucide/svelte';
 	import { onMount } from 'svelte';
 
 	interface Props {
@@ -292,7 +284,7 @@
 
 						<!-- Image Previews Grid -->
 						<div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-							{#each images as image, index}
+							{#each images as image, index (index)}
 								<div
 									class="group relative aspect-square overflow-hidden rounded-xl border-2 bg-muted shadow-sm transition-shadow hover:shadow-md"
 								>

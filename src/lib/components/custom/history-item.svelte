@@ -28,12 +28,6 @@
 		}
 	}
 
-	function getScoreColor(score: number): string {
-		if (score >= 8) return 'bg-green-500';
-		if (score >= 6) return 'bg-yellow-500';
-		return 'bg-red-500';
-	}
-
 	function getScoreVariant(score: number): 'default' | 'secondary' | 'destructive' | 'outline' {
 		if (score >= 8) return 'default';
 		if (score >= 6) return 'secondary';
@@ -84,7 +78,7 @@
 					<div>
 						<h4 class="mb-2 text-sm font-semibold text-green-600 dark:text-green-500">Pros</h4>
 						<ul class="space-y-1 text-sm">
-							{#each entry.assessment.pros.slice(0, 3) as pro}
+							{#each entry.assessment.pros.slice(0, 3) as pro, i (i)}
 								<li class="text-muted-foreground">• {pro}</li>
 							{/each}
 							{#if entry.assessment.pros.length > 3}
@@ -100,7 +94,7 @@
 					<div>
 						<h4 class="mb-2 text-sm font-semibold text-red-600 dark:text-red-500">Cons</h4>
 						<ul class="space-y-1 text-sm">
-							{#each entry.assessment.cons.slice(0, 3) as con}
+							{#each entry.assessment.cons.slice(0, 3) as con, i (i)}
 								<li class="text-muted-foreground">• {con}</li>
 							{/each}
 							{#if entry.assessment.cons.length > 3}
@@ -117,7 +111,7 @@
 				<div class="mt-4 border-t pt-4">
 					<h4 class="mb-2 text-xs font-semibold text-muted-foreground">Key Ingredients</h4>
 					<div class="flex flex-wrap gap-1">
-						{#each entry.product.ingredients.slice(0, 5) as ingredient}
+						{#each entry.product.ingredients.slice(0, 5) as ingredient, i (i)}
 							<Badge variant="outline" class="text-xs">{ingredient}</Badge>
 						{/each}
 						{#if entry.product.ingredients.length > 5}

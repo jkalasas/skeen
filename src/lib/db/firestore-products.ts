@@ -52,7 +52,7 @@ class FirestoreProductsDB {
 		}
 
 		const docRef = doc(this.getCollectionRef(), product.id);
-		const { id, ...updateData } = product;
+		const { id: _id, ...updateData } = product;
 		await updateDoc(docRef, {
 			...updateData,
 			updatedAt: Timestamp.now()

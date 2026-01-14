@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Package, FileText, FlaskConical } from '@lucide/svelte';
@@ -47,7 +46,7 @@
 					Ingredients ({product.ingredients.length})
 				</h3>
 				<div class="flex flex-wrap gap-2">
-					{#each product.ingredients as ingredient}
+					{#each product.ingredients as ingredient, i (i)}
 						<Badge variant="secondary" class="px-3 py-1.5 text-sm">{ingredient}</Badge>
 					{/each}
 				</div>
