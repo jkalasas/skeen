@@ -1,0 +1,11 @@
+{
+	"app": {
+		"windows": [
+			{
+				"title": "Skeen",
+				"label": "main",
+				"visible": true
+			}
+		]
+	}
+}
