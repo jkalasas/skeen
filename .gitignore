@@ -25,3 +25,13 @@ vite.config.ts.timestamp-*
 
 # Logs
 dev.log
+
+# Test artifacts
+/coverage
+/playwright-report
+/test-results
+/blob-report
+
+# Tauri build artifacts
+/src-tauri/target/
+/src-tauri/gen/
