@@ -33,11 +33,20 @@ android {
     }
     signingConfigs {
         create("release") {
-            val keystorePath = localProperties.getProperty("ANDROID_KEYSTORE_PATH") ?: "../../../skeen-release.keystore"
+            // CI uses environment variables, local dev uses local.properties
+            val keystorePath = System.getenv("SIGNING_STORE_FILE")
+                ?: localProperties.getProperty("ANDROID_KEYSTORE_PATH")
+                ?: "../../../skeen-release.keystore"
             storeFile = file(keystorePath)
-            storePassword = localProperties.getProperty("ANDROID_KEYSTORE_PASSWORD") ?: ""
-            keyAlias = localProperties.getProperty("ANDROID_KEY_ALIAS") ?: "skeen"
-            keyPassword = localProperties.getProperty("ANDROID_KEY_PASSWORD") ?: ""
+            storePassword = System.getenv("SIGNING_STORE_PASSWORD")
+                ?: localProperties.getProperty("ANDROID_KEYSTORE_PASSWORD")
+                ?: ""
+            keyAlias = System.getenv("SIGNING_KEY_ALIAS")
+                ?: localProperties.getProperty("ANDROID_KEY_ALIAS")
+                ?: "skeen"
+            keyPassword = System.getenv("SIGNING_KEY_PASSWORD")
+                ?: localProperties.getProperty("ANDROID_KEY_PASSWORD")
+                ?: ""
         }
     }
     buildTypes {
