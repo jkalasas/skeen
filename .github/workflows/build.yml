@@ -172,11 +172,11 @@ jobs:
           draft: true
           generate_release_notes: true
           files: |
-            artifacts/skeen-linux/*.deb
-            artifacts/skeen-linux/*.rpm
-            artifacts/skeen-linux/*.AppImage
-            artifacts/skeen-windows/*.msi
-            artifacts/skeen-windows/*.exe
+            artifacts/skeen-linux/**/*.deb
+            artifacts/skeen-linux/**/*.rpm
+            artifacts/skeen-linux/**/*.AppImage
+            artifacts/skeen-windows/**/*.msi
+            artifacts/skeen-windows/**/*.exe
             artifacts/skeen-android/**/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
