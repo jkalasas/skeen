@@ -42,6 +42,11 @@
 		"longDescription": "Skeen helps you assess skincare products using AI-powered analysis."
 	},
 	"plugins": {
-		"opener": {}
+		"opener": {},
+		"deep-link": {
+			"desktop": {
+				"schemes": ["skeen"]
+			}
+		}
 	}
 }

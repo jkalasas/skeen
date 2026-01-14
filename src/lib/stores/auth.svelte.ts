@@ -1,6 +1,7 @@
 import { getAuthInstance } from '$lib/firebase';
 import {
 	signInWithPopup,
+	signInWithCredential,
 	GoogleAuthProvider,
 	signOut as firebaseSignOut,
 	onAuthStateChanged,
@@ -8,8 +9,23 @@ import {
 } from 'firebase/auth';
 import { browser } from '$app/environment';
 import { profileStore } from './profile.svelte';
+import { isTauri, openUrl } from '$lib/platform';
+import { PUBLIC_GOOGLE_CLIENT_ID } from '$env/static/public';
 
-const AUTH_TIMEOUT_MS = 10000; // 10 second timeout for auth initialization
+const AUTH_TIMEOUT_MS = 10000;
+const GOOGLE_AUTH_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth';
+
+function buildGoogleOAuthUrl(redirectUri: string, nonce: string): string {
+	const params = new URLSearchParams({
+		client_id: PUBLIC_GOOGLE_CLIENT_ID,
+		redirect_uri: redirectUri,
+		response_type: 'id_token',
+		scope: 'openid email profile',
+		nonce,
+		prompt: 'select_account'
+	});
+	return `${GOOGLE_AUTH_ENDPOINT}?${params.toString()}`;
+}
 
 class AuthStore {
 	private user = $state<User | null>(null);
@@ -86,16 +102,65 @@ class AuthStore {
 
 		this._loading = true;
 		try {
-			const auth = getAuthInstance();
-			const provider = new GoogleAuthProvider();
-			const result = await signInWithPopup(auth, provider);
-			this.user = result.user;
+			if (isTauri()) {
+				await this.signInWithGoogleTauri();
+			} else {
+				await this.signInWithGoogleWeb();
+			}
 		} catch (error) {
 			console.error('Error signing in with Google:', error);
 			throw error;
 		} finally {
 			this._loading = false;
 		}
+	}
+
+	private async signInWithGoogleWeb() {
+		const auth = getAuthInstance();
+		const provider = new GoogleAuthProvider();
+		const result = await signInWithPopup(auth, provider);
+		this.user = result.user;
+	}
+
+	private async signInWithGoogleTauri() {
+		const { invoke } = await import('@tauri-apps/api/core');
+		const { listen } = await import('@tauri-apps/api/event');
+
+		const redirectUri = await invoke<string>('get_oauth_redirect_uri');
+		const nonce = crypto.randomUUID();
+
+		return new Promise<void>((resolve, reject) => {
+			const unlistenCallback = listen<string>('oauth-callback', async (event) => {
+				try {
+					const url = event.payload;
+					const queryString = url.split('?')[1] || '';
+					const params = new URLSearchParams(queryString);
+					const idToken = params.get('id_token');
+
+					if (idToken) {
+						const auth = getAuthInstance();
+						const credential = GoogleAuthProvider.credential(idToken);
+						const result = await signInWithCredential(auth, credential);
+						this.user = result.user;
+						(await unlistenCallback)();
+						resolve();
+					}
+				} catch (error) {
+					(await unlistenCallback)();
+					reject(error);
+				}
+			});
+
+			const unlistenError = listen<string>('oauth-error', async (event) => {
+				(await unlistenCallback)();
+				(await unlistenError)();
+				reject(new Error(event.payload));
+			});
+
+			invoke('start_oauth_server').catch(reject);
+
+			openUrl(buildGoogleOAuthUrl(redirectUri, nonce));
+		});
 	}
 
 	async signOut() {

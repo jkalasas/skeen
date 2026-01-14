@@ -7,15 +7,12 @@
 
 import { browser } from '$app/environment';
 
-/**
- * Check if the app is running inside Tauri (desktop app)
- * This checks for the presence of the Tauri IPC bridge
- */
 export function isTauri(): boolean {
 	if (!browser) return false;
 
-	// Check for Tauri's window.__TAURI__ object
-	return typeof window !== 'undefined' && '__TAURI__' in window;
+	return (
+		typeof window !== 'undefined' && ('__TAURI__' in window || '__TAURI_INTERNALS__' in window)
+	);
 }
 
 /**
