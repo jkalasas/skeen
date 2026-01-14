@@ -131,9 +131,8 @@ jobs:
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > ${{ github.workspace }}/skeen-release.jks
 
       - name: Build signed Android APK
-        working-directory: src-tauri
         run: |
-          cargo tauri android build --apk
+          bun run tauri android build --apk true
         env:
           NDK_HOME: ${{ env.NDK_HOME }}
           SIGNING_STORE_FILE: ${{ github.workspace }}/skeen-release.jks
