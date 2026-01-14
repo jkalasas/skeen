@@ -1,4 +1,4 @@
-package dev.skeen.app
+package dev.skeen
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
