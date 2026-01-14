@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skeen</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent;
+    }
+
+    .splash-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1a1f1a 0%, #0d120d 50%, #1a1f1a 100%);
+      border-radius: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Subtle animated gradient overlay */
+    .splash-container::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+        ellipse at 50% 50%,
+        rgba(143, 168, 136, 0.15) 0%,
+        transparent 70%
+      );
+      animation: pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.5; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.1); }
+    }
+
+    .logo-wrapper {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logo {
+      width: 120px;
+      height: 120px;
+      animation: fadeInScale 0.8s ease-out forwards;
+      filter: drop-shadow(0 0 20px rgba(143, 168, 136, 0.3));
+    }
+
+    @keyframes fadeInScale {
+      0% {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .brand-name {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 32px;
+      font-weight: 600;
+      color: #f5efe7;
+      letter-spacing: 4px;
+      text-transform: lowercase;
+      animation: fadeIn 0.8s ease-out 0.3s forwards;
+      opacity: 0;
+    }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .loading-dots {
+      display: flex;
+      gap: 6px;
+      margin-top: 24px;
+      animation: fadeIn 0.8s ease-out 0.6s forwards;
+      opacity: 0;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #8FA888;
+      animation: bounce 1.4s ease-in-out infinite;
+    }
+
+    .dot:nth-child(1) { animation-delay: 0s; }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% {
+        transform: translateY(0);
+        opacity: 0.5;
+      }
+      40% {
+        transform: translateY(-8px);
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="splash-container">
+    <div class="logo-wrapper">
+      <!-- Skeen Logo SVG embedded -->
+      <svg class="logo" width="200" height="200" viewBox="55 20 90 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Stylized S with leaf integration -->
+        <!-- Main S shape in sage green -->
+        <path d="M 140 50 C 140 35 125 25 105 25 C 85 25 70 35 70 50 C 70 60 75 68 85 73 L 115 87 C 125 92 130 100 130 110 C 130 125 115 135 95 135 C 75 135 60 125 60 110" 
+              stroke="#8FA888" 
+              stroke-width="12" 
+              stroke-linecap="round" 
+              fill="none"/>
+        
+        <!-- Leaf shape integrated into the S (top portion) -->
+        <path d="M 105 25 C 105 25 120 30 125 45 C 128 55 125 65 118 72 C 115 75 110 76 107 75 C 105 74 104 72 104 70 C 104 65 107 60 110 55 C 113 50 115 45 113 40 C 111 35 108 30 105 25 Z" 
+              fill="#F5EFE7" 
+              opacity="0.6"/>
+        
+        <!-- Additional leaf accent (bottom portion) -->
+        <path d="M 95 135 C 95 135 80 130 75 115 C 72 105 75 95 82 88 C 85 85 90 84 93 85 C 95 86 96 88 96 90 C 96 95 93 100 90 105 C 87 110 85 115 87 120 C 89 125 92 130 95 135 Z" 
+              fill="#F5EFE7" 
+              opacity="0.6"/>
+        
+        <!-- Flowing central element -->
+        <ellipse cx="100" cy="80" rx="2" ry="3" fill="#8FA888" opacity="0.4"/>
+        <ellipse cx="100" cy="100" rx="2" ry="3" fill="#8FA888" opacity="0.4"/>
+        <ellipse cx="100" cy="120" rx="2" ry="3" fill="#8FA888" opacity="0.4"/>
+      </svg>
+      
+      <span class="brand-name">skeen</span>
+      
+      <div class="loading-dots">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

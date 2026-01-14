@@ -3,19 +3,12 @@
 	import SkeenLogo from '$lib/assets/skeen.svg';
 	import { page } from '$app/state';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import {
-		History,
-		User,
-		GitCompare,
-		Heart,
-		Package,
-		LogOut,
-		LogIn
-	} from '@lucide/svelte';
+	import { History, User, GitCompare, Heart, Package, LogOut, LogIn } from '@lucide/svelte';
 	import { authStore } from '$lib/stores/auth.svelte';
 	import { onMount } from 'svelte';
 	import { Toaster } from '$lib/components/ui/sonner';
 	import { toast } from 'svelte-sonner';
+	import { invoke } from '@tauri-apps/api/core';
 
 	let { children } = $props();
 
@@ -25,8 +18,16 @@
 	const isCompanionPage = $derived(page.url.pathname === '/companion');
 	const isProductsPage = $derived(page.url.pathname === '/products');
 
-	onMount(() => {
+	onMount(async () => {
 		authStore.init();
+
+		if (typeof window !== 'undefined' && '__TAURI__' in window) {
+			try {
+				await invoke('close_splashscreen');
+			} catch (e) {
+				console.error('Failed to close splashscreen:', e);
+			}
+		}
 	});
 
 	async function handleSignOut() {

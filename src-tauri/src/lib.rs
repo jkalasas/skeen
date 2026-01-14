@@ -1,5 +1,15 @@
 mod oauth;
 
+use tauri::Manager;
+
+#[tauri::command]
+async fn close_splashscreen(window: tauri::Window) {
+  if let Some(splashscreen) = window.get_webview_window("splashscreen") {
+    splashscreen.close().unwrap();
+  }
+  window.get_webview_window("main").unwrap().show().unwrap();
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   tauri::Builder::default()
@@ -8,7 +18,8 @@ pub fn run() {
     .invoke_handler(tauri::generate_handler![
       oauth::get_oauth_redirect_uri,
       oauth::start_oauth_server,
-      oauth::is_mobile_platform
+      oauth::is_mobile_platform,
+      close_splashscreen
     ])
     .setup(|app| {
       if cfg!(debug_assertions) {
