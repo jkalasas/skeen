@@ -5,6 +5,7 @@ on:
     branches: [master, main]
   pull_request:
     branches: [master, main]
+  workflow_call:
 
 env:
   PUBLIC_MAX_MULTI_COUNT: '5'
