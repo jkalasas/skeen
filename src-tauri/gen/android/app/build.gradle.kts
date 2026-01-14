@@ -22,10 +22,10 @@ val localProperties = Properties().apply {
 
 android {
     compileSdk = 36
-    namespace = "dev.skeen.app"
+    namespace = "dev.skeen"
     defaultConfig {
         manifestPlaceholders["usesCleartextTraffic"] = "false"
-        applicationId = "dev.skeen.app"
+        applicationId = "dev.skeen"
         minSdk = 24
         targetSdk = 36
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
