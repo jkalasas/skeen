@@ -1,7 +1,7 @@
 use tauri::{AppHandle, Emitter};
 
 const OAUTH_CALLBACK_PORT: u16 = 9274;
-const MOBILE_REDIRECT_URI: &str = "https://jkalasas.github.io/skeen/oauth-callback.html";
+const MOBILE_REDIRECT_URI: &str = "https://skeen.jkalasas.dev/oauth-callback.html";
 
 const CALLBACK_HTML: &str = r#"<!DOCTYPE html>
 <html>
