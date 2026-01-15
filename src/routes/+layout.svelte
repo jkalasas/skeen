@@ -58,70 +58,62 @@
 	<nav
 		class="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
 	>
-		<nav
-			class="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
-		>
-			<div class="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-				<div class="flex h-16 items-center justify-between">
-					<a href={resolveRoute('/')} class="flex items-center text-xl font-bold">
-						<!-- <Sparkles class="h-6 w-6 text-primary" /> -->
-						<img src={SkeenLogo} alt="Skeen Logo" class="h-6 w-6" />
-						<span class="text-2xl">keen</span>
-					</a>
-					<div class="flex items-center gap-2">
-						{#if authStore.initialized && authStore.isAuthenticated}
-							<Button
-								variant={isComparisonPage ? 'default' : 'ghost'}
-								href="/comparison"
-								class="gap-2"
-							>
-								<GitCompare class="h-4 w-4" />
-								<span class="hidden sm:inline">Compare</span>
-							</Button>
-							<Button
-								variant={isCompanionPage ? 'default' : 'ghost'}
-								href="/companion"
-								class="gap-2"
-							>
-								<Heart class="h-4 w-4" />
-								<span class="hidden sm:inline">Companion</span>
-							</Button>
-							<Button variant={isProductsPage ? 'default' : 'ghost'} href="/products" class="gap-2">
-								<Package class="h-4 w-4" />
-								<span class="hidden sm:inline">Products</span>
-							</Button>
-							<Button variant={isProfilePage ? 'default' : 'ghost'} href="/profile" class="gap-2">
-								<User class="h-4 w-4" />
-								<span class="hidden sm:inline">Profile</span>
-							</Button>
-							<Button variant={isHistoryPage ? 'default' : 'ghost'} href="/history" class="gap-2">
-								<History class="h-4 w-4" />
-								<span class="hidden sm:inline">History</span>
-							</Button>
-							<Button variant="ghost" onclick={handleSignOut} class="gap-2">
-								<LogOut class="h-4 w-4" />
-								<span class="hidden sm:inline">Sign Out</span>
-							</Button>
-						{:else if authStore.initialized}
-							<Button variant="default" onclick={handleSignIn} class="gap-2">
-								<LogIn class="h-4 w-4" />
-								<span>Sign In with Google</span>
-							</Button>
-						{/if}
-					</div>
+		<div class="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+			<div class="flex h-16 items-center justify-between">
+				<a href={resolveRoute('/')} class="flex items-center text-xl font-bold">
+					<!-- <Sparkles class="h-6 w-6 text-primary" /> -->
+					<img src={SkeenLogo} alt="Skeen Logo" class="h-6 w-6" />
+					<span class="text-2xl">keen</span>
+				</a>
+				<div class="flex items-center gap-2">
+					{#if authStore.initialized && authStore.isAuthenticated}
+						<Button
+							variant={isComparisonPage ? 'default' : 'ghost'}
+							href="/comparison"
+							class="gap-2"
+						>
+							<GitCompare class="h-4 w-4" />
+							<span class="hidden sm:inline">Compare</span>
+						</Button>
+						<Button variant={isCompanionPage ? 'default' : 'ghost'} href="/companion" class="gap-2">
+							<Heart class="h-4 w-4" />
+							<span class="hidden sm:inline">Companion</span>
+						</Button>
+						<Button variant={isProductsPage ? 'default' : 'ghost'} href="/products" class="gap-2">
+							<Package class="h-4 w-4" />
+							<span class="hidden sm:inline">Products</span>
+						</Button>
+						<Button variant={isProfilePage ? 'default' : 'ghost'} href="/profile" class="gap-2">
+							<User class="h-4 w-4" />
+							<span class="hidden sm:inline">Profile</span>
+						</Button>
+						<Button variant={isHistoryPage ? 'default' : 'ghost'} href="/history" class="gap-2">
+							<History class="h-4 w-4" />
+							<span class="hidden sm:inline">History</span>
+						</Button>
+						<Button variant="ghost" onclick={handleSignOut} class="gap-2">
+							<LogOut class="h-4 w-4" />
+							<span class="hidden sm:inline">Sign Out</span>
+						</Button>
+					{:else if authStore.initialized}
+						<Button variant="default" onclick={handleSignIn} class="gap-2">
+							<LogIn class="h-4 w-4" />
+							<span>Sign In with Google</span>
+						</Button>
+					{/if}
 				</div>
 			</div>
-		</nav>
-
-		<!-- Main Content -->
-		<main>
-			{#if authStore.initialized}
-				{@render children?.()}
-			{:else}
-				<div class="flex h-screen items-center justify-center">
-					<p>Loading...</p>
-				</div>
-			{/if}
-		</main>
+		</div>
 	</nav>
+
+	<!-- Main Content -->
+	<main>
+		{#if authStore.initialized}
+			{@render children?.()}
+		{:else}
+			<div class="flex h-screen items-center justify-center">
+				<p>Loading...</p>
+			</div>
+		{/if}
+	</main>
 </div>
