@@ -78,9 +78,13 @@
 					<Button
 						variant={active ? 'secondary' : 'ghost'}
 						href={link.href}
-						class="gap-2 transition-all duration-200 hover:bg-secondary/10"
+						class="group gap-2 transition-all duration-200 hover:bg-secondary/10"
 					>
-						<link.icon class="h-4 w-4 {active ? 'text-primary' : 'text-muted-foreground'}" />
+						<link.icon
+							class="h-4 w-4 transition-transform duration-300 group-hover:scale-110 {active
+								? 'text-primary'
+								: 'text-muted-foreground'}"
+						/>
 						<span class={active ? 'font-medium' : ''}>{link.label}</span>
 					</Button>
 				{/each}
@@ -88,9 +92,9 @@
 					<Button
 						variant="ghost"
 						onclick={handleSignOut}
-						class="gap-2 text-muted-foreground hover:text-destructive"
+						class="group gap-2 text-muted-foreground hover:text-destructive"
 					>
-						<LogOut class="h-4 w-4" />
+						<LogOut class="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
 						<span class="hidden lg:inline">Sign Out</span>
 					</Button>
 				</div>
@@ -154,7 +158,11 @@
 								? 'border-primary bg-background'
 								: 'border-transparent bg-muted group-hover:bg-background'}"
 						>
-							<link.icon class="h-5 w-5 {active ? 'text-primary' : ''}" />
+							<link.icon
+								class="h-5 w-5 transition-transform duration-300 group-hover:scale-110 {active
+									? 'text-primary'
+									: ''}"
+							/>
 						</div>
 						{link.label}
 					</a>
@@ -168,7 +176,7 @@
 						<div
 							class="rounded-md border border-transparent bg-muted p-2 group-hover:bg-background"
 						>
-							<LogOut class="h-5 w-5" />
+							<LogOut class="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
 						</div>
 						Sign Out
 					</button>
