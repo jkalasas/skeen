@@ -73,7 +73,7 @@
 
 		<div class="hidden md:flex md:items-center md:gap-1">
 			{#if authStore.initialized && authStore.isAuthenticated}
-				{#each links as link}
+				{#each links as link (link.href)}
 					{@const active = page.url.pathname === link.href}
 					<Button
 						variant={active ? 'secondary' : 'ghost'}
@@ -144,7 +144,7 @@
 
 		<div class="flex flex-1 flex-col gap-2">
 			{#if authStore.initialized && authStore.isAuthenticated}
-				{#each links as link}
+				{#each links as link (link.href)}
 					{@const active = page.url.pathname === link.href}
 					<a
 						href={link.href}
