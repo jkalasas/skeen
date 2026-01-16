@@ -16,10 +16,12 @@
 		Image as ImageIcon,
 		Trash2,
 		SwitchCamera,
-		Search
+		Search,
+		Settings
 	} from '@lucide/svelte';
 	import type { Product } from '$lib/ai/base';
 	import { onMount } from 'svelte';
+	import { ensureCameraPermission, openAppSettings } from '$lib/permissions';
 
 	interface Props {
 		product: Product | null;
@@ -56,6 +58,7 @@
 	let cameraError = $state<string | null>(null);
 	let facingMode = $state<'user' | 'environment'>('environment');
 	let videoReady = $state(false);
+	let showSettingsPrompt = $state(false);
 
 	// Update form when product changes
 	$effect(() => {
@@ -87,8 +90,19 @@
 		try {
 			cameraError = null;
 			videoReady = false;
+			showSettingsPrompt = false;
 
-			// Stop any existing stream first
+			const permResult = await ensureCameraPermission();
+			if (!permResult.granted) {
+				if (permResult.permanentlyDenied) {
+					showSettingsPrompt = true;
+					cameraError = 'Camera permission was denied. Please enable it in Settings.';
+				} else {
+					cameraError = 'Camera permission is required to take photos.';
+				}
+				return;
+			}
+
 			if (stream) {
 				stream.getTracks().forEach((track) => track.stop());
 			}
@@ -103,7 +117,6 @@
 			stream = mediaStream;
 			isCameraActive = true;
 
-			// Wait for next tick to ensure videoElement is bound
 			await new Promise((resolve) => setTimeout(resolve, 100));
 
 			if (videoElement && stream) {
@@ -120,7 +133,14 @@
 			}
 		} catch (err) {
 			console.error('Error accessing camera:', err);
-			cameraError = 'Unable to access camera. Please check permissions.';
+			const error = err as Error;
+			if (error.name === 'NotAllowedError') {
+				cameraError = 'Camera access was denied. Please allow camera access and try again.';
+			} else if (error.name === 'NotFoundError') {
+				cameraError = 'No camera found on this device.';
+			} else {
+				cameraError = 'Unable to access camera. Please check permissions.';
+			}
 			isCameraActive = false;
 		}
 	}
@@ -214,6 +234,14 @@
 			fileInput.value = '';
 		}
 	}
+
+	async function handleOpenSettings() {
+		const result = await openAppSettings();
+		if (result.camera === 'granted') {
+			showSettingsPrompt = false;
+			await startCamera();
+		}
+	}
 </script>
 
 <Card.Root class="relative border-2">
@@ -296,10 +324,23 @@
 					<!-- Camera Error -->
 					{#if cameraError}
 						<div
-							class="flex items-start gap-2 rounded-lg border-2 border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive"
+							class="flex flex-col gap-3 rounded-lg border-2 border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive"
 						>
-							<X class="mt-0.5 h-4 w-4 flex-shrink-0" />
-							<span>{cameraError}</span>
+							<div class="flex items-start gap-2">
+								<X class="mt-0.5 h-4 w-4 flex-shrink-0" />
+								<span>{cameraError}</span>
+							</div>
+							{#if showSettingsPrompt}
+								<Button
+									onclick={handleOpenSettings}
+									variant="outline"
+									size="sm"
+									class="w-fit gap-2"
+								>
+									<Settings class="h-4 w-4" />
+									Open Settings
+								</Button>
+							{/if}
 						</div>
 					{/if}
 
