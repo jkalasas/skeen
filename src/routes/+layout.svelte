@@ -6,8 +6,16 @@
 	import { Toaster } from '$lib/components/ui/sonner';
 	import { invoke } from '@tauri-apps/api/core';
 	import Navbar from '$lib/components/custom/Navbar.svelte';
+	import { requestCameraPermission, isAndroid } from '$lib/permissions';
 
 	let { children } = $props();
+
+	async function requestPermissionsOnStartup() {
+		const isOnAndroid = await isAndroid();
+		if (isOnAndroid) {
+			await requestCameraPermission();
+		}
+	}
 
 	onMount(async () => {
 		authStore.init();
@@ -18,6 +26,8 @@
 			} catch (e) {
 				console.error('Failed to close splashscreen:', e);
 			}
+
+			requestPermissionsOnStartup();
 		}
 	});
 </script>
