@@ -35,3 +35,6 @@ dev.log
 # Tauri build artifacts
 /src-tauri/target/
 /src-tauri/gen/
+# Keep custom Android files
+!/src-tauri/gen/android/app/src/main/AndroidManifest.xml
+!/src-tauri/gen/android/app/src/main/java/dev/skeen/PermissionPlugin.kt

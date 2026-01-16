@@ -1,4 +1,5 @@
 mod oauth;
+mod permissions;
 
 use tauri::Manager;
 
@@ -18,6 +19,7 @@ pub fn run() {
   tauri::Builder::default()
     .plugin(tauri_plugin_opener::init())
     .plugin(tauri_plugin_deep_link::init())
+    .plugin(permissions::init())
     .invoke_handler(tauri::generate_handler![
       oauth::get_oauth_redirect_uri,
       oauth::start_oauth_server,
